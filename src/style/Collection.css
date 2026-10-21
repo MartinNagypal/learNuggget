@@ -1,0 +1,35 @@
+.collection {
+    background-color: var(--accent-surface);
+    width: 75%;
+    max-width: 500px;
+    border-style: solid;
+    border-width: 1.25pt;
+    border-radius: var(--border-radius-primary);
+    border-color: var(--border-color);
+    padding: 10pt;
+
+    box-shadow: 0 0 2.5pt 1.5pt var(--accent-surface);
+    color: var(--text-color);
+
+    display:flex;
+    flex-direction: column;
+    gap: 5pt;
+
+    margin-bottom: 25pt;
+}
+
+.name {
+    font-family: var(--font-header);
+    color: var(--accent-secondary);
+    padding-bottom: 4pt;
+    border-bottom: 1.5pt solid var(--border-color);
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.stats {
+    padding-bottom: 4pt;
+    border-bottom: 1.5pt solid var(--border-color);
+}

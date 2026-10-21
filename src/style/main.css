@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@800&family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+
+:root {
+    --primary-bg: #F8FAFD;
+    --accent-primary: #F24C00;
+    --accent-secondary: #4A56A6;
+    --accent-surface: #EDF1FA;
+    --border-color: #DDE3F0;
+    --text-color: #1B2233;
+    --text-color-secondary: #a6a2a2;
+    --success-color: #159A82;
+    --failure-color: #D6455D;
+
+    --font-header: 'Nunito', system-ui, sans-serif;
+    --font-text: 'Atkinson Hyperlegible', system-ui, sans-serif;
+    --font-size-big: 16pt;
+    --font-size-middle: 14pt;
+    --font-size-primary: 12pt;
+
+    --border-radius-primary: 7.5pt;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #F8FAFD;
+    background-image:
+            radial-gradient(rgba(164, 173, 193, 0.1) 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+
+    color: var(--text-color);
+    height: 100dvh;
+    width: 100dvw;
+    font-family: var(--font-text);
+    font-size: var(--font-size-primary);
+}
+
+.actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+}
+
+.standardButton{
+    padding: 6pt 10pt;
+    background-color: var(--accent-secondary);
+    color: white;
+    box-shadow: 0 0 3pt 3pt var(--border-color);
+    border-style: none;
+    border-radius: var(--border-radius-primary);
+    font-weight: bold;
+
+}

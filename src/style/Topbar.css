@@ -1,0 +1,18 @@
+.topbar {
+    width: 100dvw;
+    max-width: 100dvw;
+    box-sizing: border-box;
+    padding: 5pt 10pt;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    backdrop-filter: blur(2px);
+}
+
+.brandName{
+    color: var(--accent-secondary);
+    font-family: var(--font-header);
+    font-size: var(--font-size-big);
+}
