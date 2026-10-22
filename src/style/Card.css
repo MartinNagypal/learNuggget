@@ -1,0 +1,116 @@
+.card {
+    border: 2pt solid var(--accent-secondary);
+    border-radius: var(--border-radius-primary);
+    min-width: 250px;
+    max-width: min(75%, 400px);
+    min-height: 300px;
+
+    background-color: var(--accent-secondary);
+    box-shadow: 0 0 5pt 2pt var(--border-color);
+
+    display:flex;
+    flex-direction: row;
+    padding: 5pt;
+    color: var(--text-color-white);
+}
+
+.content {
+    flex: 1;
+    min-width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+
+    font-size: var(--font-size-middle);
+}
+
+.cardTop{
+    width: 100%;
+    border-top-left-radius: var(--border-radius-primary);
+    border-top-right-radius: var(--border-radius-primary);
+    background-color: var(--accent-surface);
+
+    padding: 5pt;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-family: var(--font-header);
+    color: var(--accent-secondary);
+}
+
+.cardContent{
+    color: var(--text-color-white);
+    font-weight: bold;
+
+    width: 100%;
+    height: 100%;
+    display:flex;
+    justify-content: left;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 15pt;
+}
+
+.cardBottom{
+    font-family: var(--font-header);
+    font-size: var(--font-size-primary);
+}
+
+.actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    gap: 10pt;
+}
+
+.button {
+    padding: 6pt 10pt;
+    border-style: none;
+    border-radius: var(--border-radius-primary);
+    font-weight: bold;
+    color: var(--text-color-white);
+    transition: all 0.15s;
+
+    width: 100%;
+}
+
+.successButton {
+    background-color: var(--success-color);
+}
+
+.failedButton {
+    background-color: var(--failure-color);
+}
+
+.failedButton:hover {
+    background-color: color-mix(in srgb, var(--failure-color), white 10%);
+}
+
+.successButton:hover {
+    background-color: color-mix(in srgb, var(--success-color), white 10%);
+}
+
+.button:active {
+    transform: scale(0.9);
+}
+
+.question {
+    padding: 15pt;
+    box-sizing: border-box;
+    font-family: var(--font-header);
+    width: 100%;
+    display: flex;
+    justify-content: left;
+}
+
+.answer{
+    padding: 15pt;
+    margin-bottom: auto;
+    font-size: var(--font-size-big);
+}

@@ -33,3 +33,16 @@
     padding-bottom: 4pt;
     border-bottom: 1.5pt solid var(--border-color);
 }
+
+.actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.modifyButtons{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    gap: 5pt;
+}

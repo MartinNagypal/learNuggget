@@ -4,6 +4,7 @@
     import Topbar from '../lib/Topbar.svelte'
 
     let name = "Martin"
+    let collections = ["Algorithmen", "Mathe", "Binärsysteme"]
 </script>
 
 <main class="homepage">
@@ -14,7 +15,7 @@
         <span> da wo du aufgehört hast!</span>
     </div>
     <h3>Kollektionen</h3>
-    <Collection />
-    <Collection />
-    <Collection />
+    {#each collections as collection}
+        <Collection name="{collection}"/>
+    {/each}
 </main>

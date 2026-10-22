@@ -1,13 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@800&family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;800&display=swap');
+
 
 :root {
     --primary-bg: #F8FAFD;
-    --accent-primary: #F24C00;
+    --accent-primary: #F26B21;
     --accent-secondary: #4A56A6;
     --accent-surface: #EDF1FA;
     --border-color: #DDE3F0;
     --text-color: #1B2233;
     --text-color-secondary: #a6a2a2;
+    --text-color-white: white;
     --success-color: #159A82;
     --failure-color: #D6455D;
 
@@ -36,12 +39,6 @@ html, body {
     font-size: var(--font-size-primary);
 }
 
-.actions {
-    display: flex;
-    flex-direction: row;
-    justify-content: right;
-}
-
 .standardButton{
     padding: 6pt 10pt;
     background-color: var(--accent-secondary);
@@ -50,5 +47,32 @@ html, body {
     border-style: none;
     border-radius: var(--border-radius-primary);
     font-weight: bold;
+    transition: all 0.15s;
+}
 
+.standardButton:hover {
+    background-color: color-mix(in srgb, var(--accent-secondary), white 10%);
+}
+
+.standardButton:active {
+    transform: scale(0.9);
+}
+
+.dangerButton{
+    padding: 6pt 10pt;
+    background-color: var(--failure-color);
+    color: white;
+    box-shadow: 0 0 3pt 3pt var(--border-color);
+    border-style: none;
+    border-radius: var(--border-radius-primary);
+    font-weight: bold;
+    transition: all 0.15s;
+}
+
+.dangerButton:hover {
+    background-color: color-mix(in srgb, var(--failure-color), white 10%);
+}
+
+.dangerButton:active {
+    transform: scale(0.9);
 }

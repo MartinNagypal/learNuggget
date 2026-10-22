@@ -1,0 +1,32 @@
+.main{
+    display: flex;
+    flex-direction: column;
+    gap: 25pt;
+    justify-content: center;
+}
+
+.pageContent{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 25pt;
+}
+
+h2{
+    font-family: var(--font-header);
+    color: var(--accent-primary)s
+}
+
+.standardButton {
+    padding: 10pt !important;
+}
+
+.actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 10pt;
+
+    margin-top: auto;
+}
