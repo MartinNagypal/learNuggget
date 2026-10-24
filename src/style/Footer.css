@@ -1,0 +1,10 @@
+.footerContent {
+    display:flex;
+    justify-content: space-between;
+    font-size: var(--font-size-small);
+    color: var(--text-color-secondary);
+    background-color: var(--primary-bg);
+    border-top: 1.5pt solid var(--border-color);
+    padding: 5pt;
+    margin-bottom: 10pt;
+}

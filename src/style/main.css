@@ -19,6 +19,7 @@
     --font-size-big: 16pt;
     --font-size-middle: 14pt;
     --font-size-primary: 12pt;
+    --font-size-small: 10pt;
 
     --border-radius-primary: 7.5pt;
 }
@@ -79,4 +80,19 @@ html, body {
 
 .border {
     border: solid 1.5pt black;
+}
+
+.app{
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar{
+    position: sticky;
+    top: 0;
+}
+
+.footer {
+    margin-top:auto;
 }

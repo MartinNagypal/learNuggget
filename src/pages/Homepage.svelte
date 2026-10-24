@@ -1,15 +1,13 @@
 <script>
     import '../style/Homepage.css';
     import Collection from '../lib/Collection.svelte'
-    import Topbar from '../lib/Topbar.svelte'
 
     let name = "Martin"
     let collections = ["Algorithmen", "Mathe", "Binärsysteme", "Algorithmen", "Mathe", "Binärsysteme"]
-    let {homepage, learningpage} = $props();
+    let {learningpage} = $props();
 </script>
 
 <main class="homepage">
-    <div class="topbar"><Topbar homepage={homepage}/></div>
     <div class="welcome">
         <span>Hallo <span style="color:var(--success-color)">{name}</span></span>
         <span class="welcomeOrange">Übe weiter</span>

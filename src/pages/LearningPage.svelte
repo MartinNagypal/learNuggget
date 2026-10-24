@@ -1,14 +1,11 @@
 <script>
     import '../style/LearningPage.css'
-    import Topbar from '../lib/Topbar.svelte'
     import Card from '../lib/Card.svelte'
 
     let name = "Informatik"
     let card = "Was ist Skefkenlnln<swjldna wkjndj kwand nwajdn wajkbdkwabd aortingmaorting aorting aorting"
     let antwort ="aortingaorting aorting aorting aorting aortingaorting aorting aorting aorting"
     let site = $state(0);
-
-    let {homepage} = $props();
 
     function changeSite(){
         if(site === 0){
@@ -73,7 +70,6 @@
 </script>
 
 <div class="main">
-    <div class="topbar"><Topbar homepage={homepage}/></div>
     <div class="learningPageContent">
         <div class="cardSlot">
             {#key currentCard}
