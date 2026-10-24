@@ -1,7 +1,8 @@
 .collection {
     background-color: var(--accent-surface);
     width: 75%;
-    max-width: 500px;
+    min-width: 250px;
+    max-width: 375px;
     border-style: solid;
     border-width: 1.25pt;
     border-radius: var(--border-radius-primary);
@@ -14,8 +15,6 @@
     display:flex;
     flex-direction: column;
     gap: 5pt;
-
-    margin-bottom: 25pt;
 }
 
 .name {
@@ -34,10 +33,11 @@
     border-bottom: 1.5pt solid var(--border-color);
 }
 
-.actions {
+.collectionActions {
+    width: 100%;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-between;s
 }
 
 .modifyButtons{

@@ -2,15 +2,17 @@
     display: flex;
     flex-direction: column;
     gap: 25pt;
-    justify-content: center;
+    height: 100dvh;
 }
 
-.pageContent{
+.learningPageContent{
     display: flex;
+    height: 100%;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 25pt;
+    overflow: hidden;
 }
 
 h2{
@@ -22,11 +24,20 @@ h2{
     padding: 10pt !important;
 }
 
-.actions {
+.learningActions {
     display: flex;
     flex-direction: row;
     justify-content: center;
     gap: 10pt;
+    margin-bottom: 15dvh;
+}
 
-    margin-top: auto;
+.cardSlot {
+    display: grid;
+    width: 100%;
+    justify-items: center;
+}
+
+.cardSlot > * {
+    grid-area: 1 / 1;
 }

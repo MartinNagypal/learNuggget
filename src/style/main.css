@@ -76,3 +76,7 @@ html, body {
 .dangerButton:active {
     transform: scale(0.9);
 }
+
+.border {
+    border: solid 1.5pt black;
+}
