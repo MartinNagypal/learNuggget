@@ -3,8 +3,19 @@
     import Collection from '../lib/Collection.svelte'
 
     let name = "Martin"
-    let collections = ["Algorithmen", "Mathe", "Binärsysteme", "Algorithmen", "Mathe", "Binärsysteme"]
     let {learningpage} = $props();
+    let collections = $state([]);
+
+    async function getCollections(){
+        const response = await fetch("/api/collections");
+        const data = await response.json();
+        for(const collection of data){
+            collections[collections.length] = collection;
+        }
+    }
+
+    getCollections();
+
 </script>
 
 <main class="homepage">
