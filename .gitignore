@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?s
 .vscode
+
+learNuggget.db
+*.db

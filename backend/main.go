@@ -1,15 +1,17 @@
 package main
 
 import (
-	"fmt"
-
+	"backend/functions"
 	"backend/routes"
+	"log"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	functions.InitTables()
+	functions.AddNewCollection("test4")
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
@@ -28,9 +30,9 @@ func main() {
 	routes.FlashcardRoutes(router)
 	routes.CollectionRoutes(router)
 
-	err := router.Run(":3000")
-	if err != nil {
-		fmt.Println(err)
+	routerErr := router.Run(":3000")
+	if routerErr != nil {
+		log.Fatal(routerErr)
 		return
 	}
 }

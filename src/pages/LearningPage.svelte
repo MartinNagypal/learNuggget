@@ -17,9 +17,9 @@
     }
 
     class CardElement {
-        constructor(question, answer) {
-            this.question = question;
-            this.answer = answer;
+        constructor(cardQuestion, cardAnswer) {
+            this.question = cardQuestion;
+            this.answer = cardAnswer;
         }
     }
 

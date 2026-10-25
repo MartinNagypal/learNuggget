@@ -10,11 +10,13 @@
         const response = await fetch("/api/collections");
         const data = await response.json();
         for(const collection of data){
-            collections[collections.length] = collection;
+            if(!collections.includes(collection)){
+                collections[collections.length] = collection;
+            }
         }
     }
-
     getCollections();
+    setInterval(getCollections, 5000);
 
 </script>
 
@@ -29,6 +31,7 @@
         {#each collections as collection}
             <Collection name="{collection}" learningpage={learningpage}/>
         {/each}
+        <div class="newCollection">Neue Kollektion</div>
     </div>
 
 

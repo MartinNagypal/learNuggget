@@ -1,10 +1,18 @@
 .footerContent {
     display:flex;
     justify-content: space-between;
+    align-items: center;
     font-size: var(--font-size-small);
     color: var(--text-color-secondary);
     background-color: var(--primary-bg);
     border-top: 1.5pt solid var(--border-color);
     padding: 5pt;
     margin-bottom: 10pt;
+}
+
+.footerLeft {
+    display:flex;
+    flex-direction: column;
+    gap: 5pt;
+    align-items: flex-start;
 }

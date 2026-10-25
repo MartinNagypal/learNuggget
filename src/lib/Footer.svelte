@@ -3,6 +3,6 @@
 </script>
 
 <main class="footerContent">
-    <span>from ChickenNuggget ©</span>
+    <span>by <b>ChickenNuggget ©</b></span>
     <span>Martin Nagypal</span>
 </main>

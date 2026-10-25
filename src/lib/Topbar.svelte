@@ -6,6 +6,6 @@
 </script>
 
 <div class="topbar">
-    <span class="brandName">learNuggget</span>
+    <img src="../../public/logo.png" height="40px" alt="logo">
     <span class="brandName homebutton" onclick={homepage}><i class="fa-solid fa-house"></i></span>
 </div>
