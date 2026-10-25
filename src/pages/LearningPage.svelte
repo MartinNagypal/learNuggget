@@ -2,7 +2,8 @@
     import '../style/LearningPage.css'
     import Card from '../lib/Card.svelte'
 
-    let name = "Informatik"
+    let {name} = $props();
+
     let card = "Was ist Skefkenlnln<swjldna wkjndj kwand nwajdn wajkbdkwabd aortingmaorting aorting aorting"
     let antwort ="aortingaorting aorting aorting aorting aortingaorting aorting aorting aorting"
     let site = $state(0);

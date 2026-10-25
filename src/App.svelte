@@ -6,13 +6,15 @@
   import Footer from './lib/Footer.svelte'
 
   let page = $state(0);
+  let selectedCollection = $state("")
 
   function homePage(){
    page = 0;
   }
 
-  function learningPage(){
-   page = 1;
+  function learningPage(selectedCollectionName){
+      selectedCollection = selectedCollectionName;
+      page = 1;
   }
 
 </script>
@@ -22,7 +24,7 @@
  {#if page === 0}
      <Homepage learningpage={learningPage} />
   {:else}
-      <LearningPage/>
+      <LearningPage name={selectedCollection}/>
   {/if}
     <div class="footer"><Footer /></div>
 </main>

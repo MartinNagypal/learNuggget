@@ -1,22 +1,35 @@
 <script>
     import '../style/Homepage.css';
     import Collection from '../lib/Collection.svelte'
+    import NewCollection from "../lib/NewCollection.svelte";
 
     let name = "Martin"
     let {learningpage} = $props();
     let collections = $state([]);
+    let newCollection = $state(0);
+
+    function toggleNewCollection(){
+        if(newCollection === 0){
+            newCollection = 1;
+        }
+    }
+
+    function closeNewCollection(){
+        if(newCollection === 1){
+            newCollection = 0;
+        }
+    }
 
     async function getCollections(){
         const response = await fetch("/api/collections");
         const data = await response.json();
+        collections.length = 0;
         for(const collection of data){
-            if(!collections.includes(collection)){
-                collections[collections.length] = collection;
-            }
+            collections[collections.length] = collection;
         }
     }
     getCollections();
-    setInterval(getCollections, 5000);
+    setInterval(getCollections, 4000);
 
 </script>
 
@@ -29,9 +42,15 @@
     <h3 >Kollektionen</h3>
     <div class="collectionsContainer">
         {#each collections as collection}
-            <Collection name="{collection}" learningpage={learningpage}/>
+            <Collection name="{collection}" learningpage={learningpage} reloadCollections={getCollections}/>
         {/each}
-        <div class="newCollection">Neue Kollektion</div>
+        <div class="newCollection" onclick={toggleNewCollection}>
+            {#if newCollection === 0}
+                Neue Kollektion
+            {:else }
+                <NewCollection closeNewCollection={closeNewCollection} reloadCollections={getCollections}/>
+            {/if}
+        </div>
     </div>
 
 

@@ -78,6 +78,21 @@ html, body {
     transform: scale(0.9);
 }
 
+.mainInputStyle {
+    border: solid 1.5pt var(--border-color);
+    border-radius: var(--border-radius-primary);
+    color: var(--text-color-secondary);
+    padding: 5pt;
+    outline: none;
+    text-align: center;
+}
+
+.mainInputStyle:focus {
+    border: 1.5pt solid var(--accent-secondary);
+    box-shadow: 0 0 3pt 3pt var(--border-color);
+    color: var(--text-color);
+}
+
 .border {
     border: solid 1.5pt black;
 }
@@ -95,4 +110,8 @@ html, body {
 
 .footer {
     margin-top:auto;
+}
+
+.errorBorder {
+    border: 1.5pt, solid, var(--failure-color) !important;
 }

@@ -65,13 +65,31 @@ func AddNewCollection(collectionName string) error {
 		_, execErr := db.Exec(`INSERT INTO collection (name) VALUES (?)`, collectionName)
 		if execErr != nil {
 			log.Println("Error executing db command in dbHandler.go:")
-			log.Fatal(execErr)
+			log.Println(execErr)
+			return execErr
 		}
-		return execErr
 	} else {
 		log.Fatal(openErr)
 		return openErr
 	}
+	return openErr
+}
+
+func RemoveCollection(collectionName string) error {
+	db, openErr := openDb()
+	if db != nil && openErr == nil {
+		defer db.Close()
+		_, execErr := db.Exec(`DELETE FROM collection WHERE name = ?`, collectionName)
+		if execErr != nil {
+			log.Println("Error executing db command in dbHandler.go:")
+			log.Println(execErr)
+			return execErr
+		}
+	} else {
+		log.Fatal(openErr)
+		return openErr
+	}
+	return openErr
 }
 
 func FetchCollections() ([]string, error) {

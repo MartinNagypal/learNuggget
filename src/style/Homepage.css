@@ -61,10 +61,6 @@ h3{
     transition: all 0.2s;
 }
 
-.newCollection:hover {
-    background-color: color-mix(in srgb, var(--accent-surface), black 5%);
-}
-
 .newCollection:active {
     transform: scale(0.95);
 }
