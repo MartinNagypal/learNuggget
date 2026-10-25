@@ -3,6 +3,9 @@
 </script>
 
 <main class="footerContent">
-    <span>by <b>ChickenNuggget ©</b></span>
-    <span>Martin Nagypal</span>
+    <div class="footerLeft">
+        <span>Martin Nagypal</span>
+        <a>github.com/MartinNagypal/learNuggget</a>
+    </div>
+    <span>by <b>ChickenNuggget</b></span>
 </main>

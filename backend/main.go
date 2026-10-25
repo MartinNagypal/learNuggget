@@ -11,7 +11,6 @@ import (
 
 func main() {
 	functions.InitTables()
-	functions.AddNewCollection("test4")
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{

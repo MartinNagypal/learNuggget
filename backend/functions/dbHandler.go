@@ -21,19 +21,38 @@ func InitTables() error {
 	db, openErr := openDb()
 	if db != nil && openErr == nil {
 		defer db.Close()
-		_, err := db.Exec(`
+		_, errCollection := db.Exec(`
 		CREATE TABLE IF NOT EXISTS collection (
 		    id INTEGER PRIMARY KEY,
-		    name TEXT NOT NULL UNIQUE
-		)
-	`)
+		    name TEXT NOT NULL UNIQUE,
+		    right INTEGER DEFAULT 0,
+		    wrong INTEGER DEFAULT 0
+			)
+		`)
 
-		if err != nil {
-			log.Fatal(err)
-			return err
-		} else {
-			return nil
+		if errCollection != nil {
+			log.Println("Error creating collection table in dbHandler.go:")
+			log.Fatal(errCollection)
+			return errCollection
 		}
+
+		_, errCard := db.Exec(`
+		CREATE TABLE IF NOT EXISTS card (
+		    id INTEGER PRIMARY KEY,
+		    question TEXT NOT NULL UNIQUE,
+			answer TEXT NOT NULL UNIQUE,
+			marked INTEGER DEFAULT 0,
+			collectionID INTEGER NOT NULL
+			)
+		`)
+
+		if errCard != nil {
+			log.Println("Error creating card table in dbHandler.go:")
+			log.Fatal(errCard)
+			return errCard
+		}
+		return nil
+
 	} else {
 		return openErr
 	}
@@ -45,6 +64,7 @@ func AddNewCollection(collectionName string) error {
 		defer db.Close()
 		_, execErr := db.Exec(`INSERT INTO collection (name) VALUES (?)`, collectionName)
 		if execErr != nil {
+			log.Println("Error executing db command in dbHandler.go:")
 			log.Fatal(execErr)
 		}
 		return execErr

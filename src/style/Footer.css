@@ -1,5 +1,7 @@
 .footerContent {
     display:flex;
+    flex-wrap: wrap;
+    gap: 2pt;
     justify-content: space-between;
     align-items: center;
     font-size: var(--font-size-small);
@@ -13,6 +15,7 @@
 .footerLeft {
     display:flex;
     flex-direction: column;
-    gap: 5pt;
+    gap: 2pt;
     align-items: flex-start;
+    justify-content: center;
 }
