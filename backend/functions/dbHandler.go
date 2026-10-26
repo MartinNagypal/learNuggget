@@ -83,19 +83,27 @@ func AddNewCollection(collectionName string) error {
 
 func RemoveCollection(collectionName string) error {
 	db, openErr := openDb()
-	if db != nil && openErr == nil {
-		defer db.Close()
-		_, execErr := db.Exec(`DELETE FROM collection WHERE name = ?`, collectionName)
-		if execErr != nil {
-			log.Println("Error executing db command in dbHandler.go:")
-			log.Println(execErr)
-			return execErr
-		}
-	} else {
-		log.Fatal(openErr)
+	defer db.Close()
+	if openErr != nil {
+		log.Println("Error in dbHandler.go")
+		log.Println(openErr)
 		return openErr
 	}
-	return openErr
+	_, cardErr := db.Exec("DELETE FROM card WHERE collectionID = (SELECT id FROM collection WHERE name = ?)", collectionName)
+	if cardErr != nil {
+		log.Println("Error in dbHandler.go:")
+		log.Println(cardErr)
+		return cardErr
+	}
+
+	_, collErr := db.Exec("DELETE FROM collection WHERE name = ?", collectionName)
+	if collErr != nil {
+		log.Println("Error in dbHandler.go:")
+		log.Println(collErr)
+		return collErr
+	}
+
+	return nil
 }
 
 func FetchCollections() ([]string, error) {
