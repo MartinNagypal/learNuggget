@@ -77,7 +77,8 @@
 .button {
     padding: 5pt 10pt;
     border-style: none;
-    border-radius: calc(var(--border-radius-primary) - 4pt);
+    border-radius: calc(var(--border-radius-primary) - 4pt) !important;
+    box-shadow: none !important;
     font-weight: bold;
     color: var(--text-color-white);
     transition: all 0.15s;

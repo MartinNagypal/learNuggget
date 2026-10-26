@@ -7,6 +7,11 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+type collectionElement struct {
+	name string
+	id   int
+}
+
 type card struct {
 	question     string
 	answer       string
@@ -109,7 +114,7 @@ func RemoveCollection(collectionName string) error {
 func FetchCollections() ([]string, error) {
 	db, openErr := openDb()
 	if db != nil && openErr == nil {
-		rows, queryErr := db.Query(`SELECT name FROM collection ORDER BY id`)
+		rows, queryErr := db.Query(`SELECT name FROM collection ORDER BY id`) //id auch fetchen, error handling verbessern
 		if queryErr != nil {
 			log.Fatal(queryErr)
 			return nil, queryErr
