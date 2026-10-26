@@ -28,8 +28,10 @@
 
 <main id="newCollectionContent" class="newCollectionContent">
     <span class="newCollectionHeader">Name</span>
-    <input id="inputCollectionName" class="mainInputStyle" type="text" placeholder="Kollektion" bind:value={name}>
-    <button class="standardButton" onclick={postNewCollection}>Hinzufügen</button>
+    <div class="newCollectionForm">
+        <input id="inputCollectionName" class="mainInputStyle" type="text" placeholder="Kollektion" bind:value={name}>
+        <button class="standardButton" onclick={postNewCollection}>+</button>
+    </div>
 </main>
 
 
@@ -42,14 +44,32 @@
         gap: 5pt;
         color: var(--text-color-secondary);
 
+        input {
+            height: 36px;
+            box-sizing: border-box;
+        }
+
         input:focus {
             border: 1.5pt solid var(--success-color) !important;
         }
 
         button {
             background-color: var(--success-color) !important;
-            padding: 7.5pt !important;
+            padding: 5pt !important;
+            padding-left: 10pt !important;
+            padding-right: 10pt !important;
+            box-sizing: border-box !important;
+            height: 35px !important;
+            text-align: center;
         }
+    }
+
+    .newCollectionForm{
+        display: flex;
+        flex-direction: row;
+        gap: 10pt;
+        justify-content: center;
+        align-items: center;
     }
 
 </style>

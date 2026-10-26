@@ -7,6 +7,12 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+type card struct {
+	question     string
+	answer       string
+	collectionID int
+}
+
 func openDb() (*sql.DB, error) {
 	db, dbErr := sql.Open("sqlite", "learNuggget.db")
 	if dbErr != nil {
@@ -115,4 +121,54 @@ func FetchCollections() ([]string, error) {
 		}
 	}
 	return nil, openErr
+}
+
+func AddNewCard(question, answer string, collectionID int) error {
+	db, dbErr := openDb()
+	if dbErr != nil || db == nil {
+		log.Println("Error in dbHandler.go:")
+		log.Println(dbErr)
+		return dbErr
+	}
+
+	_, execErr := db.Exec("INSERT INTO card (question, answer, collectionID) VALUES (?,?,?)", question, answer, collectionID)
+	if execErr != nil {
+		log.Println("Error in dbHandler.go")
+		log.Println(execErr)
+		return execErr
+	} else {
+		return nil
+	}
+}
+
+func FetchCards(collectionID int) ([]card, error) {
+	db, dbErr := openDb()
+	defer db.Close()
+	if dbErr != nil || db == nil {
+		log.Println("Error in dbHandler.go:")
+		log.Println(dbErr)
+		return nil, dbErr
+	}
+
+	rows, queryErr := db.Query("SELECT question, answer, collectionID FROM card WHERE collectionID = ?", collectionID)
+	defer rows.Close()
+	if queryErr != nil {
+		log.Println("Error in dbHandler.go:")
+		log.Println(queryErr)
+		return nil, queryErr
+	}
+
+	cards := []card{}
+	for rows.Next() {
+		var cardElement card
+		scanErr := rows.Scan(&cardElement.question, &cardElement.answer, &cardElement.collectionID)
+		if scanErr != nil {
+			log.Println("Error in dbHandler.go:")
+			log.Println(scanErr)
+			return nil, scanErr
+		}
+		cards = append(cards, cardElement)
+	}
+	return cards, nil
+
 }

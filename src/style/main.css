@@ -55,10 +55,6 @@ html, body {
     background-color: color-mix(in srgb, var(--accent-secondary), white 10%);
 }
 
-.standardButton:active {
-    transform: scale(0.9);
-}
-
 .dangerButton{
     padding: 6pt 10pt;
     background-color: var(--failure-color);
@@ -74,7 +70,22 @@ html, body {
     background-color: color-mix(in srgb, var(--failure-color), white 10%);
 }
 
-.dangerButton:active {
+.successButton{
+    padding: 6pt 10pt;
+    background-color: var(--success-color);
+    color: white;
+    box-shadow: 0 0 3pt 3pt var(--border-color);
+    border-style: none;
+    border-radius: var(--border-radius-primary);
+    font-weight: bold;
+    transition: all 0.15s;
+}
+
+.successButton:hover {
+    background-color: color-mix(in srgb, var(--success-color), white 10%);
+}
+
+.dangerButton:active, .successButton:active, .standardButton:active {
     transform: scale(0.9);
 }
 
