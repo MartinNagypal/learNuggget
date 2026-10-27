@@ -37,6 +37,21 @@
         }));
     }
 
+    addEventListener("keydown", (event) => {
+        if(event.key === " "){
+            changeSite();
+            return
+        }
+        if(event.key === "ArrowRight"){
+            nextCard();
+            return;
+        }
+        if(event.key === "ArrowLeft"){
+            previousCard();
+            return;
+        }
+    })
+
     fetchCards();
     let currentCard = $state(0);
     let direction = $state(1);

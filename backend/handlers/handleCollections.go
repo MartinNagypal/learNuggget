@@ -9,7 +9,6 @@ import (
 )
 
 func GetCollections(c *gin.Context) {
-	log.Println(c.Query("orderState"))
 	sortState, convErr := strconv.Atoi(c.Query("orderState"))
 	if convErr != nil {
 		log.Println("Error in handleCollections.go:")

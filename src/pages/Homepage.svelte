@@ -2,6 +2,8 @@
     import '../style/Homepage.css';
     import Collection from '../lib/Collection.svelte'
     import NewCollection from "../lib/NewCollection.svelte";
+    import { fade } from 'svelte/transition';
+    import { scale } from 'svelte/transition';
 
     let name = "Martin"
     let {learningpage} = $props();
@@ -77,10 +79,8 @@
             {#if newCollection === 0}
                 Neue Kollektion
             {:else }
-                <NewCollection closeNewCollection={closeNewCollection} reloadCollections={getCollections}/>
+                <div  in:fade={{duration: 200}}><NewCollection closeNewCollection={closeNewCollection} reloadCollections={getCollections}/></div>
             {/if}
         </div>
     </div>
-
-
 </main>

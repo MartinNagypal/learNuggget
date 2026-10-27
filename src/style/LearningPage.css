@@ -3,6 +3,8 @@
     flex-direction: column;
     gap: 25pt;
     flex:1;
+    overflow: hidden;
+
 }
 
 .learningPageContent{

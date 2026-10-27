@@ -33,7 +33,7 @@
 
 </script>
 
-<div class="collection">
+<div class="collection" in:scale={{ duration: 200, start: 0.8, opacity: 25 }} out:scale={{ duration: 200, start: 0.25, opacity: 0 }}>
     <div class="name">{name}</div>
     <div class="collectionActions">
         <div class="modifyButtons">

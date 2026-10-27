@@ -16,7 +16,6 @@
             closeNewCollection();
             reloadCollections();
             name = "";
-            document.getElementById("newCollectionContent").classList.remove("errorBorder");
         }
         else {
             closeNewCollection();
@@ -30,7 +29,8 @@
     <span class="newCollectionHeader">Name</span>
     <div class="newCollectionForm">
         <input id="inputCollectionName" class="mainInputStyle" type="text" placeholder="Kollektion" bind:value={name}>
-        <button class="standardButton" onclick={postNewCollection}>+</button>
+        <button class="successButton" onclick={postNewCollection}>+</button>
+        <button class="dangerButton" onclick={(event) => { event.stopPropagation(); closeNewCollection();}}>x</button>
     </div>
 </main>
 
@@ -43,6 +43,7 @@
         align-items: center;
         gap: 5pt;
         color: var(--text-color-secondary);
+        transition: all ease 0.3s;
 
         input {
             height: 36px;
@@ -54,7 +55,6 @@
         }
 
         button {
-            background-color: var(--success-color) !important;
             padding: 5pt !important;
             padding-left: 10pt !important;
             padding-right: 10pt !important;
@@ -67,7 +67,7 @@
     .newCollectionForm{
         display: flex;
         flex-direction: row;
-        gap: 10pt;
+        gap: 5pt;
         justify-content: center;
         align-items: center;
     }
