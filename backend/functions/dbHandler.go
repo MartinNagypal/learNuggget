@@ -2,6 +2,7 @@ package functions
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "modernc.org/sqlite"
@@ -112,7 +113,8 @@ func RemoveCollection(collectionName string) error {
 	return nil
 }
 
-func FetchCollections() ([]CollectionElement, error) {
+func FetchCollections(orderState int) ([]CollectionElement, error) {
+	//order: 0=createdAt DESC 1=createdAt, 2=name 3= name DESC
 	db, openErr := openDb()
 	if openErr != nil {
 		log.Println("Error in dbHandler.go")
@@ -120,7 +122,28 @@ func FetchCollections() ([]CollectionElement, error) {
 		return nil, openErr
 	}
 
-	rows, queryErr := db.Query(`SELECT Id, name FROM collection ORDER BY createdAt DESC`) //Id auch fetchen, error handling verbessern
+	var orderBy, order string
+	switch orderState {
+	case 0:
+		orderBy = "createdAt"
+		order = "DESC"
+	case 1:
+		orderBy = "createdAt"
+		order = "ASC"
+	case 2:
+		orderBy = "name"
+		order = "ASC"
+	case 3:
+		orderBy = "name"
+		order = "DESC"
+	default:
+		orderBy = "name"
+		order = "DESC"
+	}
+
+	query := fmt.Sprintf("SELECT Id, name FROM collection ORDER BY %s COLLATE NOCASE %s", orderBy, order)
+
+	rows, queryErr := db.Query(query) //Id auch fetchen, error handling verbessern
 	if queryErr != nil {
 		log.Fatal(queryErr)
 		return nil, queryErr

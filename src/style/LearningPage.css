@@ -35,6 +35,12 @@ h2{
     display: grid;
     width: 100%;
     justify-items: center;
+
+    span {
+        font-family: var(--font-header);
+        color: var(--text-color-secondary);
+        text-align: center;
+    }
 }
 
 .cardSlot > * {

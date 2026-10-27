@@ -84,14 +84,18 @@
                 {#key currentCard}
                     <Card collection={name} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction}/>
                 {/key}
+            {:else}
+                <span>Diese Kollektion enthält bisher noch keine Karten.</span>
             {/if}
         </div>
 
-        <div class="learningActions">
-            <button class="standardButton" onclick={previousCard}><i class="fa-solid fa-angle-left fa-xl"></i></button>
-            <button class="standardButton" onclick={changeSite}><i class="fa-solid fa-rotate fa-xl"></i></button>
-            <button class="standardButton" onclick={nextCard}><i class="fa-solid fa-angle-right fa-xl"></i></button>
-        </div>
+        {#if cards.length != 0}
+            <div class="learningActions">
+                <button class="standardButton" onclick={previousCard}><i class="fa-solid fa-angle-left fa-xl"></i></button>
+                <button class="standardButton" onclick={changeSite}><i class="fa-solid fa-rotate fa-xl"></i></button>
+                <button class="standardButton" onclick={nextCard}><i class="fa-solid fa-angle-right fa-xl"></i></button>
+            </div>
+        {/if}
     </div>
 </div>
 

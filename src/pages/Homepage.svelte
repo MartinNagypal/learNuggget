@@ -7,6 +7,7 @@
     let {learningpage} = $props();
     let collections = $state([]);
     let newCollection = $state(0);
+    let sortBy = $state(0);
 
     class collectionElement{
         constructor(name, id) {
@@ -27,8 +28,17 @@
         }
     }
 
+    function toggleSort(){
+        sortBy += 1;
+        if(sortBy === 4) {
+            sortBy = 0;
+        }
+        getCollections();
+    }
+
     async function getCollections(){
-        const response = await fetch("/api/collections");
+        const params = new URLSearchParams({orderState: sortBy.toString()});
+        const response = await fetch(`/api/collections?${params}`);
         const data = await response.json();
         collections.length = 0;
         collections = data.map(collection => ({
@@ -47,7 +57,18 @@
         <span class="welcomeOrange">Übe weiter</span>
         <span> da wo du aufgehört hast!</span>
     </div>
-    <h3 >Kollektionen</h3>
+    <div class="collectionsHeader">
+        <h3 >Kollektionen</h3>
+        {#if sortBy === 0}
+            <h5 onclick={toggleSort}> <i class="fa-solid fa-arrow-down-short-wide fa-lg"></i> Neuste</h5>
+        {:else if sortBy === 1}
+            <h5 onclick={toggleSort}> <i class="fa-solid fa-arrow-up-short-wide fa-lg"></i> Älteste</h5>
+        {:else if sortBy === 2}
+            <h5 onclick={toggleSort}><i class="fa-solid fa-arrow-down-a-z fa-lg"></i> A-Z</h5>
+        {:else if sortBy === 3}
+            <h5 onclick={toggleSort}><i class="fa-solid fa-arrow-up-a-z fa-lg"></i> Z-A</h5>
+        {/if}
+    </div>
     <div class="collectionsContainer">
         {#each collections as collection}
             <Collection name="{collection.name}" id={collection.id} learningpage={learningpage} reloadCollections={getCollections}/>

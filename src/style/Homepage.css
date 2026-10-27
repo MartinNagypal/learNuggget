@@ -23,9 +23,22 @@
     color: var(--accent-primary);
 }
 
-h3{
+h3, h5{
     color: var(--text-color-secondary);
     font-family: var(--font-header);
+}
+
+h5{
+    margin-top: 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.collectionsHeader{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .collectionsContainer{

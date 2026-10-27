@@ -3,15 +3,26 @@ package handlers
 import (
 	"backend/functions"
 	"log"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetCollections(c *gin.Context) {
-	collections, err := functions.FetchCollections()
+	log.Println(c.Query("orderState"))
+	sortState, convErr := strconv.Atoi(c.Query("orderState"))
+	if convErr != nil {
+		log.Println("Error in handleCollections.go:")
+		log.Println(convErr)
+		c.JSON(500, convErr.Error())
+		return
+	}
+
+	collections, err := functions.FetchCollections(sortState)
 	if err != nil {
 		log.Println(err)
 		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 	c.JSON(200, collections)
 }
