@@ -7,14 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type newCardType struct {
-	question     string
-	answer       string
-	collectionID int
-}
-
 func AddNewCard(c *gin.Context) {
-	var newCard newCardType
+	var newCard functions.Card
 	err := c.ShouldBindJSON(&newCard)
 	if err != nil {
 		log.Println("Error in handleFlashcards.go:")
@@ -22,7 +16,7 @@ func AddNewCard(c *gin.Context) {
 		c.JSON(500, gin.H{"message": err})
 	}
 
-	dbErr := functions.AddNewCard(newCard.question, newCard.answer, newCard.collectionID)
+	dbErr := functions.AddNewCard(newCard.Question, newCard.Answer, newCard.CollectionID)
 	if dbErr != nil {
 		log.Println("Error in handleFlashcards.go:")
 		log.Println(err)

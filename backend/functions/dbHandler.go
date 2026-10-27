@@ -7,12 +7,12 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-type collectionElement struct {
+type CollectionElement struct {
 	Name string
 	Id   int
 }
 
-type card struct {
+type Card struct {
 	Question     string `json:"question"`
 	Answer       string `json:"answer"`
 	CollectionID int    `json:"collectionID"`
@@ -49,7 +49,7 @@ func InitTables() error {
 		}
 
 		_, errCard := db.Exec(`
-		CREATE TABLE IF NOT EXISTS card (
+		CREATE TABLE IF NOT EXISTS Card (
 		    Id INTEGER PRIMARY KEY,
 		    question TEXT NOT NULL UNIQUE,
 			answer TEXT NOT NULL UNIQUE,
@@ -59,7 +59,7 @@ func InitTables() error {
 		`)
 
 		if errCard != nil {
-			log.Println("Error creating card table in dbHandler.go:")
+			log.Println("Error creating Card table in dbHandler.go:")
 			log.Fatal(errCard)
 			return errCard
 		}
@@ -95,7 +95,7 @@ func RemoveCollection(collectionName string) error {
 		log.Println(openErr)
 		return openErr
 	}
-	_, cardErr := db.Exec("DELETE FROM card WHERE collectionID = (SELECT Id FROM collection WHERE name = ?)", collectionName)
+	_, cardErr := db.Exec("DELETE FROM Card WHERE collectionID = (SELECT Id FROM collection WHERE name = ?)", collectionName)
 	if cardErr != nil {
 		log.Println("Error in dbHandler.go:")
 		log.Println(cardErr)
@@ -112,7 +112,7 @@ func RemoveCollection(collectionName string) error {
 	return nil
 }
 
-func FetchCollections() ([]collectionElement, error) {
+func FetchCollections() ([]CollectionElement, error) {
 	db, openErr := openDb()
 	if openErr != nil {
 		log.Println("Error in dbHandler.go")
@@ -126,9 +126,9 @@ func FetchCollections() ([]collectionElement, error) {
 		return nil, queryErr
 
 	}
-	var collections []collectionElement
+	var collections []CollectionElement
 	for rows.Next() {
-		var collection collectionElement
+		var collection CollectionElement
 		if err := rows.Scan(&collection.Id, &collection.Name); err != nil {
 			return nil, err
 		}
@@ -148,7 +148,7 @@ func AddNewCard(question, answer string, collectionID int) error {
 		return dbErr
 	}
 
-	_, execErr := db.Exec("INSERT INTO card (question, answer, collectionID) VALUES (?,?,?)", question, answer, collectionID)
+	_, execErr := db.Exec("INSERT INTO Card (question, answer, collectionID) VALUES (?,?,?)", question, answer, collectionID)
 	if execErr != nil {
 		log.Println("Error in dbHandler.go")
 		log.Println(execErr)
@@ -158,7 +158,7 @@ func AddNewCard(question, answer string, collectionID int) error {
 	}
 }
 
-func FetchCards(collectionID int) ([]card, error) {
+func FetchCards(collectionID int) ([]Card, error) {
 	db, dbErr := openDb()
 	defer db.Close()
 	if dbErr != nil || db == nil {
@@ -167,7 +167,7 @@ func FetchCards(collectionID int) ([]card, error) {
 		return nil, dbErr
 	}
 
-	rows, queryErr := db.Query("SELECT question, answer, collectionID FROM card WHERE collectionID = ?", collectionID)
+	rows, queryErr := db.Query("SELECT question, answer, collectionID FROM Card WHERE collectionID = ?", collectionID)
 	defer rows.Close()
 	if queryErr != nil {
 		log.Println("Error in dbHandler.go:")
@@ -175,9 +175,9 @@ func FetchCards(collectionID int) ([]card, error) {
 		return nil, queryErr
 	}
 
-	cards := []card{}
+	cards := []Card{}
 	for rows.Next() {
-		var cardElement card
+		var cardElement Card
 		scanErr := rows.Scan(&cardElement.Question, &cardElement.Answer, &cardElement.CollectionID)
 		if scanErr != nil {
 			log.Println("Error in dbHandler.go:")

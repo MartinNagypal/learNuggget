@@ -3,6 +3,7 @@
     let {CollectionID, toggleAddSingleCardActive} = $props();
     let Question = $state("");
     let Answer = $state("");
+    let hasError = $state(0);
 
     async function postNewSingleCard(){
         const data = {
@@ -19,14 +20,18 @@
             body: JSON.stringify(data)
         });
 
-        const resData = await res.json();
-        console.log(res)
-        toggleAddSingleCardActive()
+        if(!res.ok){
+            hasError = 1;
+            return;
+        }
+        hasError = 0;
+        toggleAddSingleCardActive();
+
     }
 
 </script>
 
-<div class="addSingleCardContent">
+<div class="addSingleCardContent" class:addSingleCardError={hasError}>
     <span class="AddSingleCardCategoryName">Frage</span>
     <input class="mainInputStyle" placeholder="Frage" type="text" bind:value={Question}>
     <span class="AddSingleCardCategoryName">Antwort</span>
@@ -46,9 +51,13 @@
 
         padding: 5pt;
         margin-top: 5pt;
+        transition: all ease-out 0.25s;
     }
     .AddSingleCardCategoryName{
         font-family: var(--font-header);
         color: var(--accent-secondary);
+    }
+    .addSingleCardError {
+        border-color: var(--failure-color) !important;
     }
 </style>
