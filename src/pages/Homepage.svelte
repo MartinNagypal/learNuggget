@@ -8,6 +8,13 @@
     let collections = $state([]);
     let newCollection = $state(0);
 
+    class collectionElement{
+        constructor(name, id) {
+            this.name = name;
+            this.id = id;
+        }
+    }
+
     function toggleNewCollection(){
         if(newCollection === 0){
             newCollection = 1;
@@ -24,9 +31,10 @@
         const response = await fetch("/api/collections");
         const data = await response.json();
         collections.length = 0;
-        for(const collection of data){
-            collections[collections.length] = collection;
-        }
+        collections = data.map(collection => ({
+            name: collection.Name,
+            id: collection.Id
+        }));
     }
     getCollections();
     setInterval(getCollections, 4000);
@@ -42,7 +50,7 @@
     <h3 >Kollektionen</h3>
     <div class="collectionsContainer">
         {#each collections as collection}
-            <Collection name="{collection}" learningpage={learningpage} reloadCollections={getCollections}/>
+            <Collection name="{collection.name}" id={collection.id} learningpage={learningpage} reloadCollections={getCollections}/>
         {/each}
         <div class="newCollection" onclick={toggleNewCollection}>
             {#if newCollection === 0}

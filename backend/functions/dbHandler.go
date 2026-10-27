@@ -8,14 +8,14 @@ import (
 )
 
 type collectionElement struct {
-	name string
-	id   int
+	Name string
+	Id   int
 }
 
 type card struct {
-	question     string
-	answer       string
-	collectionID int
+	Question     string `json:"question"`
+	Answer       string `json:"answer"`
+	CollectionID int    `json:"collectionID"`
 }
 
 func openDb() (*sql.DB, error) {
@@ -34,10 +34,11 @@ func InitTables() error {
 		defer db.Close()
 		_, errCollection := db.Exec(`
 		CREATE TABLE IF NOT EXISTS collection (
-		    id INTEGER PRIMARY KEY,
+		    Id INTEGER PRIMARY KEY,
 		    name TEXT NOT NULL UNIQUE,
 		    right INTEGER DEFAULT 0,
-		    wrong INTEGER DEFAULT 0
+		    wrong INTEGER DEFAULT 0,
+		    createdAt DEFAULT CURRENT_TIMESTAMP
 			)
 		`)
 
@@ -49,7 +50,7 @@ func InitTables() error {
 
 		_, errCard := db.Exec(`
 		CREATE TABLE IF NOT EXISTS card (
-		    id INTEGER PRIMARY KEY,
+		    Id INTEGER PRIMARY KEY,
 		    question TEXT NOT NULL UNIQUE,
 			answer TEXT NOT NULL UNIQUE,
 			marked INTEGER DEFAULT 0,
@@ -94,7 +95,7 @@ func RemoveCollection(collectionName string) error {
 		log.Println(openErr)
 		return openErr
 	}
-	_, cardErr := db.Exec("DELETE FROM card WHERE collectionID = (SELECT id FROM collection WHERE name = ?)", collectionName)
+	_, cardErr := db.Exec("DELETE FROM card WHERE collectionID = (SELECT Id FROM collection WHERE name = ?)", collectionName)
 	if cardErr != nil {
 		log.Println("Error in dbHandler.go:")
 		log.Println(cardErr)
@@ -111,29 +112,32 @@ func RemoveCollection(collectionName string) error {
 	return nil
 }
 
-func FetchCollections() ([]string, error) {
+func FetchCollections() ([]collectionElement, error) {
 	db, openErr := openDb()
-	if db != nil && openErr == nil {
-		rows, queryErr := db.Query(`SELECT name FROM collection ORDER BY id`) //id auch fetchen, error handling verbessern
-		if queryErr != nil {
-			log.Fatal(queryErr)
-			return nil, queryErr
-		} else {
-			var collections []string
-			for rows.Next() {
-				var name string
-				if err := rows.Scan(&name); err != nil {
-					return nil, err
-				}
-				collections = append(collections, name)
-			}
-			if err := rows.Err(); err != nil {
-				return nil, err
-			}
-			return collections, nil
-		}
+	if openErr != nil {
+		log.Println("Error in dbHandler.go")
+		log.Println(openErr)
+		return nil, openErr
 	}
-	return nil, openErr
+
+	rows, queryErr := db.Query(`SELECT Id, name FROM collection ORDER BY createdAt DESC`) //Id auch fetchen, error handling verbessern
+	if queryErr != nil {
+		log.Fatal(queryErr)
+		return nil, queryErr
+
+	}
+	var collections []collectionElement
+	for rows.Next() {
+		var collection collectionElement
+		if err := rows.Scan(&collection.Id, &collection.Name); err != nil {
+			return nil, err
+		}
+		collections = append(collections, collection)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return collections, nil
 }
 
 func AddNewCard(question, answer string, collectionID int) error {
@@ -174,7 +178,7 @@ func FetchCards(collectionID int) ([]card, error) {
 	cards := []card{}
 	for rows.Next() {
 		var cardElement card
-		scanErr := rows.Scan(&cardElement.question, &cardElement.answer, &cardElement.collectionID)
+		scanErr := rows.Scan(&cardElement.Question, &cardElement.Answer, &cardElement.CollectionID)
 		if scanErr != nil {
 			log.Println("Error in dbHandler.go:")
 			log.Println(scanErr)
