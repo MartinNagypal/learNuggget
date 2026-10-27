@@ -21,6 +21,8 @@ func main() {
 			"http://127.0.0.1:5173",
 			"http://192.168.8.150:5173",
 			"http://192.168.8.150:5174",
+			"http://10.207.158.115:5173",
+			"http://10.207.158.115:5174",
 		},
 		AllowMethods: []string{
 			"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",

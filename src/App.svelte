@@ -7,13 +7,15 @@
 
   let page = $state(0);
   let selectedCollection = $state("")
+  let selectedId = $state(0)
 
   function homePage(){
    page = 0;
   }
 
-  function learningPage(selectedCollectionName){
-      selectedCollection = selectedCollectionName;
+  function learningPage(name, id){
+      selectedCollection = name;
+      selectedId = id;
       page = 1;
   }
 
@@ -24,7 +26,7 @@
  {#if page === 0}
      <Homepage learningpage={learningPage} />
   {:else}
-      <LearningPage name={selectedCollection}/>
+      <LearningPage name={selectedCollection} id={selectedId}/>
   {/if}
     <div class="footer"><Footer /></div>
 </main>

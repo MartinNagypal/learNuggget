@@ -2,7 +2,7 @@
     import '../style/LearningPage.css'
     import Card from '../lib/Card.svelte'
 
-    let {name} = $props();
+    let {name, id} = $props();
 
     let card = "Was ist Skefkenlnln<swjldna wkjndj kwand nwajdn wajkbdkwabd aortingmaorting aorting aorting"
     let antwort ="aortingaorting aorting aorting aorting aortingaorting aorting aorting aorting"
@@ -24,13 +24,20 @@
         }
     }
 
-    const cards = [
-        new CardElement("Was sind algorithmen", "Rezepte für Programme"),
-        new CardElement("Was ist Bogo Sort", "Effizienteste Sortieralgorithmus der Welt"),
-        new CardElement("Was ist die beste Progammiersprache", "Python"),
-        new CardElement("Wovon hängt die Laufzeit ab", "Sie hängt von vielen Größen wie Hardware, Software, Implementierung, Anzahl der vergleiche ab oder auch Interne hardware wie der Scheduler der zwisxchendurch auch andere prozesse ablaufen lassen kann.Sie hängt von vielen Größen wie Hardware, Software, Implementierung, Anzahl der vergleiche ab oder auch Interne hardware wie der Scheduler der zwisxchendurch auch andere prozesse ablaufen lassen kann.\""),
-    ]
+    let cards = $state([]);
 
+    async function fetchCards() {
+        const params = new URLSearchParams({collectionID: id});
+        const res = await fetch(`/api/cards?${params}`)
+        console.log(res);
+        const data = await res.json()
+        cards = data.map(CardElement => ({
+            question: CardElement.question,
+            answer: CardElement.answer
+        }));
+    }
+
+    fetchCards();
     let currentCard = $state(0);
     let direction = $state(1);
 
@@ -73,9 +80,11 @@
 <div class="main">
     <div class="learningPageContent">
         <div class="cardSlot">
-            {#key currentCard}
-                <Card collection={name} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction}/>
-            {/key}
+            {#if cards.length != 0}
+                {#key currentCard}
+                    <Card collection={name} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction}/>
+                {/key}
+            {/if}
         </div>
 
         <div class="learningActions">

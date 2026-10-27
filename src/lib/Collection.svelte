@@ -45,7 +45,7 @@
             <button class="standardButton" onclick={printName}><i class="fa-solid fa-pen"></i></button>
             <button class="dangerButton" onclick={removeCollection}><i class="fa-solid fa-trash"></i></button>
         </div>
-        <button class="standardButton" onclick={() => learningpage(name)}>Lernen</button>
+        <button class="standardButton" onclick={() => learningpage(name, id)}>Lernen</button>
     </div>
     {#if addSingleCardActive === 1}
         <AddSingleCard CollectionID={id} toggleAddSingleCardActive={toggleAddSingleCardActive}/>
