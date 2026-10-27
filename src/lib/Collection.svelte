@@ -1,9 +1,11 @@
 <script>
     import '../style/Collection.css';
     import AddSingleCard from "./AddSingleCard.svelte";
+    import CollectionSettings from "./CollectionSettings.svelte";
     import { fade, fly, scale } from 'svelte/transition';
     let {name, id, learningpage, reloadCollections} = $props();
     let addSingleCardActive = $state(0);
+    let showCollectionSettings = $state(0);
 
     function toggleAddSingleCardActive() {
         if(addSingleCardActive === 0){
@@ -11,6 +13,15 @@
         }
         else {
             addSingleCardActive = 0;
+        }
+    }
+
+    function toggleShowCollectionSettings(){
+        if(showCollectionSettings === 0){
+            showCollectionSettings = 1;
+        }
+        else {
+            showCollectionSettings = 0;
         }
     }
 
@@ -42,11 +53,14 @@
             {:else}
                 <button class="dangerButton" onclick={toggleAddSingleCardActive} in:scale={{ duration: 150, start: 0.8 }}>x</button>
             {/if}
-            <button class="standardButton" onclick={printName}><i class="fa-solid fa-pen"></i></button>
+            <button class="standardButton" onclick={toggleShowCollectionSettings}><i class="fa-solid fa-pen"></i></button>
             <button class="dangerButton" onclick={removeCollection}><i class="fa-solid fa-trash"></i></button>
         </div>
         <button class="standardButton" onclick={() => learningpage(name, id)}>Lernen</button>
     </div>
+    {#if showCollectionSettings === 1}
+        <CollectionSettings id={id} toggleShowCollectionSettings={toggleShowCollectionSettings}/>
+    {/if}
     {#if addSingleCardActive === 1}
         <AddSingleCard CollectionID={id} toggleAddSingleCardActive={toggleAddSingleCardActive}/>
     {/if}

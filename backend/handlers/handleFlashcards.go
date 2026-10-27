@@ -4,6 +4,7 @@ import (
 	"backend/functions"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -46,4 +47,43 @@ func GetCards(c *gin.Context) {
 
 	c.JSON(200, cards)
 
+}
+
+func AddBulkCards(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Query("id"))
+	var body struct {
+		Bulk string `json:"bulk"`
+	}
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		log.Println("Error in handleFlashcards.go:")
+		log.Println(err)
+		c.JSON(500, gin.H{"message": err.Error()})
+		return
+	}
+
+	type bulkCard struct {
+		Question string
+		Answer   string
+	}
+
+	bulkCardsCol := strings.Split(body.Bulk, ";")
+	for _, element := range bulkCardsCol {
+		if element == "" {
+			continue
+		}
+		log.Println(body.Bulk)
+		sepElement := strings.Split(element, "#")
+		if len(sepElement) != 2 {
+			continue
+		}
+		addErr := functions.AddNewCard(sepElement[0], sepElement[1], id)
+		if addErr != nil {
+			log.Println("Error in handleFlashcards.go:")
+			log.Println(addErr.Error())
+			c.JSON(500, gin.H{"message": "One or more cards could not be added..."})
+			continue
+		}
+		println(sepElement)
+	}
 }
