@@ -9,15 +9,6 @@
     let showCollectionSettings = $state(0);
     let len = $state(0);
 
-    function toggleAddSingleCardActive() {
-        if(addSingleCardActive === 0){
-            addSingleCardActive = 1;
-        }
-        else {
-            addSingleCardActive = 0;
-        }
-    }
-
     function toggleShowCollectionSettings(){
         if(showCollectionSettings === 0){
             showCollectionSettings = 1;
@@ -64,19 +55,21 @@
     <div class="collectionActions">
         <div class="modifyButtons">
             {#if addSingleCardActive === 0}
-                <button class="successButton" onclick={toggleAddSingleCardActive} in:scale={{ duration: 150, start: 0.8 }}>+</button>
+                <button class="successButton" onclick={toggleShowCollectionSettings} in:scale={{ duration: 150, start: 0.8 }}>+</button>
             {:else}
-                <button class="dangerButton" onclick={toggleAddSingleCardActive} in:scale={{ duration: 150, start: 0.8 }}>x</button>
+                <button class="dangerButton" onclick={toggleShowCollectionSettings} in:scale={{ duration: 150, start: 0.8 }}>x</button>
             {/if}
-            <button class="standardButton" onclick={toggleShowCollectionSettings}><i class="fa-solid fa-pen"></i></button>
             <button class="dangerButton" onclick={removeCollection}><i class="fa-solid fa-trash"></i></button>
         </div>
-        <button class="standardButton" onclick={() => learningpage(name, id)}>Lernen</button>
+        <div class="gamemodeButtons">
+            <button class="standardButton"><i class="fa-solid fa-infinity"></i></button>
+            <button class="standardButton"><i class="fa-solid fa-bullseye"></i></button>
+            <button class="standardButton" onclick={() => learningpage(name, id)}><i class="fa-solid fa-dumbbell"></i></button>
+        </div>
+
     </div>
     {#if showCollectionSettings === 1}
-        <CollectionSettings id={id} toggleShowCollectionSettings={toggleShowCollectionSettings}/>
-    {/if}
-    {#if addSingleCardActive === 1}
-        <AddSingleCard CollectionID={id} toggleAddSingleCardActive={toggleAddSingleCardActive} reloadCollectionLen={getCollectionLen}/>
+        <AddSingleCard CollectionID={id} toggleAddSingleCardActive={showCollectionSettings} reloadCollectionLen={getCollectionLen}/>
+        <CollectionSettings id={id} toggleShowCollectionSettings={toggleShowCollectionSettings} reloadCollectionLen={getCollectionLen}/>
     {/if}
 </div>

@@ -5,7 +5,7 @@
 
 <div class="cardProgress">
     <span>{current}</span>
-    <span>{known} / {len}</span>
+    <span> <span style="color:var(--success-color);">{known}</span> / {len}</span>
     <progress class="cardProgressBar" value={known} max={len} transition:fade={{duration: 200}}></progress>
 </div>
 

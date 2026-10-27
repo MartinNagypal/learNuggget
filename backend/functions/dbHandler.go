@@ -40,8 +40,8 @@ func InitTables() error {
 		_, errCard := db.Exec(`
 		CREATE TABLE IF NOT EXISTS Card (
 		    Id INTEGER PRIMARY KEY,
-		    question TEXT NOT NULL UNIQUE,
-			answer TEXT NOT NULL UNIQUE,
+		    question TEXT NOT NULL,
+			answer TEXT NOT NULL,
 			marked INTEGER DEFAULT 0,
 			collectionID INTEGER NOT NULL
 			)

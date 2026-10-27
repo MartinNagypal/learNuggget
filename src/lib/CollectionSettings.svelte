@@ -1,6 +1,6 @@
 <script>
 
-    let {id, toggleShowCollectionSettings} = $props();
+    let {id, toggleShowCollectionSettings, reloadCollectionLen} = $props();
     let text = $state("")
 
     async function addBulkCards(){
@@ -16,6 +16,7 @@
         });
         if(res.ok){
             toggleShowCollectionSettings();
+            reloadCollectionLen();
         }
     }
 
