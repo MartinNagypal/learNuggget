@@ -2,10 +2,12 @@
     import '../style/Collection.css';
     import AddSingleCard from "./AddSingleCard.svelte";
     import CollectionSettings from "./CollectionSettings.svelte";
+    import { onMount } from 'svelte';
     import { fade, fly, scale } from 'svelte/transition';
     let {name, id, learningpage, reloadCollections} = $props();
     let addSingleCardActive = $state(0);
     let showCollectionSettings = $state(0);
+    let len = $state(0);
 
     function toggleAddSingleCardActive() {
         if(addSingleCardActive === 0){
@@ -42,10 +44,23 @@
         }
     }
 
+    async function getCollectionLen(){
+        const res = await fetch(`/api/collection/len?id=${id}`)
+        const data = await res.json()
+        console.log(data.len);
+        len = data.len;
+    }
+    onMount(() => {
+        getCollectionLen();
+    });
+
 </script>
 
-<div class="collection" in:scale={{ duration: 200, start: 0.8, opacity: 25 }} out:scale={{ duration: 200, start: 0.25, opacity: 0 }}>
+<div class="collection" out:fly={{ x: 80, duration: 300, opacity: 0 }} in:fly={{ x: -80, duration: 200, opacity: 0 }}>
     <div class="name">{name}</div>
+    <div class="collectionStats">
+        <span><b>{len}</b> Karten</span>
+    </div>
     <div class="collectionActions">
         <div class="modifyButtons">
             {#if addSingleCardActive === 0}
@@ -62,6 +77,6 @@
         <CollectionSettings id={id} toggleShowCollectionSettings={toggleShowCollectionSettings}/>
     {/if}
     {#if addSingleCardActive === 1}
-        <AddSingleCard CollectionID={id} toggleAddSingleCardActive={toggleAddSingleCardActive}/>
+        <AddSingleCard CollectionID={id} toggleAddSingleCardActive={toggleAddSingleCardActive} reloadCollectionLen={getCollectionLen}/>
     {/if}
 </div>

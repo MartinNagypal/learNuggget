@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"backend/functions"
-	"log"
 	"strconv"
 	"strings"
 
@@ -13,15 +12,13 @@ func AddNewCard(c *gin.Context) {
 	var newCard functions.Card
 	err := c.ShouldBindJSON(&newCard)
 	if err != nil {
-		log.Println("Error in handleFlashcards.go:")
-		log.Println(err)
+		functions.LogError(functions.GetFile(), err)
 		c.JSON(500, gin.H{"message": err.Error()})
 	}
 
 	dbErr := functions.AddNewCard(newCard.Question, newCard.Answer, newCard.CollectionID)
 	if dbErr != nil {
-		log.Println("Error in handleFlashcards.go:")
-		log.Println(err)
+		functions.LogError(functions.GetFile(), dbErr)
 		c.JSON(500, gin.H{"message": dbErr.Error()})
 	}
 
@@ -34,19 +31,18 @@ func GetCards(c *gin.Context) {
 	cards, fetchErr := functions.FetchCards(id)
 
 	if convErr != nil {
-		log.Println("Error in handleFlashcards.go:")
-		log.Println("No CollectionID given")
+		functions.LogError(functions.GetFile(), convErr)
 		c.JSON(400, gin.H{"message": "No collectionID given"})
+		return
 	}
 
 	if fetchErr != nil {
-		log.Println("Error in handleFlashcards.go:")
-		log.Println(fetchErr)
+		functions.LogError(functions.GetFile(), fetchErr)
 		c.JSON(500, gin.H{"message": fetchErr.Error()})
+		return
 	}
 
 	c.JSON(200, cards)
-
 }
 
 func AddBulkCards(c *gin.Context) {
@@ -56,8 +52,7 @@ func AddBulkCards(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		log.Println("Error in handleFlashcards.go:")
-		log.Println(err)
+		functions.LogError(functions.GetFile(), err)
 		c.JSON(500, gin.H{"message": err.Error()})
 		return
 	}
@@ -72,18 +67,27 @@ func AddBulkCards(c *gin.Context) {
 		if element == "" {
 			continue
 		}
-		log.Println(body.Bulk)
 		sepElement := strings.Split(element, "#")
 		if len(sepElement) != 2 {
 			continue
 		}
 		addErr := functions.AddNewCard(sepElement[0], sepElement[1], id)
 		if addErr != nil {
-			log.Println("Error in handleFlashcards.go:")
-			log.Println(addErr.Error())
+			functions.LogError(functions.GetFile(), addErr)
 			c.JSON(500, gin.H{"message": "One or more cards could not be added..."})
 			continue
 		}
 		println(sepElement)
 	}
+}
+
+func DeleteCard(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Query("id"))
+	err := functions.DeleteCard(id)
+	if err != nil {
+		functions.LogError(functions.GetFile(), err)
+		c.JSON(500, gin.H{"message": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"message": "Deleted Succesfully"})
 }

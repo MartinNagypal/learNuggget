@@ -23,7 +23,7 @@
 
 <div class="collectionSettings">
     <div class="collectionSettingsHeader">Bulk Hinzufügen</div>
-    <textarea bind:value={text}></textarea>
+    <textarea bind:value={text} placeholder="format: question#answer;"></textarea>
     <button class="successButton" onclick={addBulkCards}>Hinzufügen</button>
 </div>
 

@@ -35,6 +35,7 @@
         if(sortBy === 4) {
             sortBy = 0;
         }
+        collections = [];
         getCollections();
     }
 
@@ -72,7 +73,7 @@
         {/if}
     </div>
     <div class="collectionsContainer">
-        {#each collections as collection}
+        {#each collections as collection (collection.id)}
             <Collection name="{collection.name}" id={collection.id} learningpage={learningpage} reloadCollections={getCollections}/>
         {/each}
         <div class="newCollection" onclick={toggleNewCollection}>

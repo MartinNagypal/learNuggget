@@ -81,11 +81,26 @@ html, body {
     transition: all 0.15s;
 }
 
+.accentButton{
+    padding: 6pt 10pt;
+    background-color: var(--accent-primary);
+    color: white;
+    box-shadow: 0 0 3pt 3pt var(--border-color);
+    border-style: none;
+    border-radius: var(--border-radius-primary);
+    font-weight: bold;
+    transition: all 0.15s;
+}
+
+.accentButton:hover{
+    background-color: color-mix(in srgb, var(--accent-primary), white 10%);
+}
+
 .successButton:hover {
     background-color: color-mix(in srgb, var(--success-color), white 10%);
 }
 
-.dangerButton:active, .successButton:active, .standardButton:active {
+.dangerButton:active, .successButton:active, .standardButton:active, .accentButton:active {
     transform: scale(0.9);
 }
 

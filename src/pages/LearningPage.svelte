@@ -7,6 +7,7 @@
     let card = "Was ist Skefkenlnln<swjldna wkjndj kwand nwajdn wajkbdkwabd aortingmaorting aorting aorting"
     let antwort ="aortingaorting aorting aorting aorting aortingaorting aorting aorting aorting"
     let site = $state(0);
+    let delCount = $state(0)
 
     function changeSite(){
         if(site === 0){
@@ -18,9 +19,10 @@
     }
 
     class CardElement {
-        constructor(cardQuestion, cardAnswer) {
+        constructor(cardQuestion, cardAnswer, cardId) {
             this.question = cardQuestion;
             this.answer = cardAnswer;
+            this.cardId = cardId;
         }
     }
 
@@ -31,10 +33,12 @@
         const res = await fetch(`/api/cards?${params}`)
         console.log(res);
         const data = await res.json()
-        cards = data.map(CardElement => ({
-            question: CardElement.question,
-            answer: CardElement.answer
+        cards = data.map(card => ({
+            question: card.question,
+            answer: card.answer,
+            cardId: card.cardId
         }));
+        console.log(cards)
     }
 
     addEventListener("keydown", (event) => {
@@ -60,12 +64,14 @@
         direction = 1;
         site = 0;
         currentCard = (currentCard + 1) % cards.length;
+        delCount = 0;
     }
 
     function previousCard() {
         direction = -1;
         site = 0;
         currentCard = (currentCard - 1 + cards.length) % cards.length;
+        delCount = 0;
     }
 
     let startX;
@@ -90,6 +96,21 @@
         startX = undefined;
     });
 
+    async function deleteCard(){
+        if(delCount === 0){
+            delCount++
+            return
+        }
+        delCount = 0;
+        const res = await fetch(`/api/card/delete?id=${cards[currentCard].cardId}`, {
+            method: 'DELETE'
+        })
+        if(res.ok){
+            await fetchCards();
+            nextCard();
+        }
+    }
+
 </script>
 
 <div class="main">
@@ -97,7 +118,7 @@
         <div class="cardSlot">
             {#if cards.length != 0}
                 {#key currentCard}
-                    <Card collection={name} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction}/>
+                    <Card collection={name} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction} current={currentCard+1} len={cards.length}/>
                 {/key}
             {:else}
                 <span>Diese Kollektion enthält bisher noch keine Karten.</span>
@@ -106,9 +127,11 @@
 
         {#if cards.length != 0}
             <div class="learningActions">
+                <button class="dangerButton" onclick={deleteCard}><i class="fa-solid fa-trash"></i></button>
                 <button class="standardButton" onclick={previousCard}><i class="fa-solid fa-angle-left fa-xl"></i></button>
                 <button class="standardButton" onclick={changeSite}><i class="fa-solid fa-rotate fa-xl"></i></button>
                 <button class="standardButton" onclick={nextCard}><i class="fa-solid fa-angle-right fa-xl"></i></button>
+                <button class="accentButton"><i class="fa-regular fa-star"></i></button>
             </div>
         {/if}
     </div>

@@ -19,6 +19,7 @@
 
 .name {
     font-family: var(--font-header);
+    font-size: var(--font-size-middle);
     color: var(--accent-secondary);
     padding-bottom: 4pt;
     border-bottom: 1.5pt solid var(--border-color);
@@ -28,8 +29,9 @@
     justify-content: center;
 }
 
-.stats {
+.collectionStats {
     padding-bottom: 4pt;
+    padding-left: 10pt;
     border-bottom: 1.5pt solid var(--border-color);
 }
 
@@ -41,8 +43,8 @@
 }
 
 .modifyButtons{
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     justify-content: left;
     gap: 5pt;
 }
