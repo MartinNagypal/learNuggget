@@ -4,8 +4,6 @@
 
     let {name, id} = $props();
 
-    let card = "Was ist Skefkenlnln<swjldna wkjndj kwand nwajdn wajkbdkwabd aortingmaorting aorting aorting"
-    let antwort ="aortingaorting aorting aorting aorting aortingaorting aorting aorting aorting"
     let site = $state(0);
     let delCount = $state(0)
 
@@ -27,18 +25,21 @@
     }
 
     let cards = $state([]);
+    let finished = $state(0);
+    let known = $state(0);
+    let wrong = $state(0);
 
     async function fetchCards() {
         const params = new URLSearchParams({collectionID: id});
         const res = await fetch(`/api/cards?${params}`)
         console.log(res);
         const data = await res.json()
-        cards = data.map(card => ({
+        cards = data.map((card, index) => ({
             question: card.question,
             answer: card.answer,
-            cardId: card.cardId
+            cardId: card.cardId,
+            originalIndex: index
         }));
-        console.log(cards)
     }
 
     addEventListener("keydown", (event) => {
@@ -72,6 +73,15 @@
         site = 0;
         currentCard = (currentCard - 1 + cards.length) % cards.length;
         delCount = 0;
+    }
+
+    function toggleKnowCard(){
+        cards.splice(currentCard, 1);
+        site = 0;
+        known++;
+        if(cards.length === 0){
+            finished = 1;
+        }
     }
 
     let startX;
@@ -117,9 +127,11 @@
     <div class="learningPageContent">
         <div class="cardSlot">
             {#if cards.length != 0}
-                {#key currentCard}
-                    <Card collection={name} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction} current={currentCard+1} len={cards.length}/>
+                {#key cards[currentCard].cardId}
+                    <Card collection={name} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction} current={(cards[currentCard].originalIndex)+1} len={(cards.length)+known} toggleKnownCard={toggleKnowCard} known={known} nextCard={nextCard}/>
                 {/key}
+            {:else if finished === 1}
+                <span>Bestanden</span>
             {:else}
                 <span>Diese Kollektion enthält bisher noch keine Karten.</span>
             {/if}
