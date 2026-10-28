@@ -92,6 +92,16 @@ html, body {
     transition: all 0.15s;
 }
 
+.inactiveButton {
+    padding: 6pt 10pt;
+    background-color: var(--text-color-secondary);
+    color: white;
+    box-shadow: 0 0 3pt 3pt var(--border-color);
+    border-style: none;
+    border-radius: var(--border-radius-primary);
+    font-weight: bold;
+}
+
 .accentButton:hover{
     background-color: color-mix(in srgb, var(--accent-primary), white 10%);
 }

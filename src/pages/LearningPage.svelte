@@ -1,11 +1,20 @@
 <script>
     import '../style/LearningPage.css'
     import Card from '../lib/Card.svelte'
+    import ProgressReport from "../lib/ProgressReport.svelte";
 
-    let {name, id} = $props();
+    let {name, id, gameMode} = $props();
 
     let site = $state(0);
     let delCount = $state(0)
+    let cards = $state([]);
+    let finished = $state(0);
+    let known = $state(0);
+    let wrong = $state(0);
+    let currentCard = $state(0);
+    let direction = $state(1);
+    let progress = $state(0);
+    let len = $state(0);
 
     function changeSite(){
         if(site === 0){
@@ -16,6 +25,7 @@
         }
     }
 
+
     class CardElement {
         constructor(cardQuestion, cardAnswer, cardId) {
             this.question = cardQuestion;
@@ -23,11 +33,6 @@
             this.cardId = cardId;
         }
     }
-
-    let cards = $state([]);
-    let finished = $state(0);
-    let known = $state(0);
-    let wrong = $state(0);
 
     async function fetchCards() {
         const params = new URLSearchParams({collectionID: id});
@@ -40,26 +45,28 @@
             cardId: card.cardId,
             originalIndex: index
         }));
+        len = cards.length;
     }
 
     addEventListener("keydown", (event) => {
-        if(event.key === " "){
-            changeSite();
-            return
+        if(gameMode === 2){
+            if(event.key === " "){
+                changeSite();
+                return
+            }
+            if(event.key === "ArrowRight"){
+                nextCard();
+                return;
+            }
+            if(event.key === "ArrowLeft"){
+                previousCard();
+                return;
+            }
         }
-        if(event.key === "ArrowRight"){
-            nextCard();
-            return;
-        }
-        if(event.key === "ArrowLeft"){
-            previousCard();
-            return;
-        }
+
     })
 
     fetchCards();
-    let currentCard = $state(0);
-    let direction = $state(1);
 
     function nextCard() {
         direction = 1;
@@ -76,12 +83,42 @@
     }
 
     function toggleKnowCard(){
-        cards.splice(currentCard, 1);
-        site = 0;
-        known++;
-        if(cards.length === 0){
-            finished = 1;
+        if(gameMode === 0){
+            cards.splice(currentCard, 1);
+            site = 0;
+            known++;
+            progress = known;
+            if(cards.length === 0){
+                finished = 1;
+            }
         }
+        else if(gameMode === 1){
+            cards.splice(currentCard, 1);
+            site = 0;
+            known++;
+            progress++;
+            if(cards.length === 0){
+                finished = 1;
+            }
+        }
+
+    }
+
+    function toggleWrong() {
+        if(gameMode === 0){
+            wrong++;
+            nextCard();
+        }
+        else if(gameMode === 1){
+            cards.splice(currentCard, 1);
+            site = 0;
+            wrong++;
+            progress++;
+            if(cards.length === 0){
+                finished = 1;
+            }
+        }
+
     }
 
     let startX;
@@ -92,18 +129,21 @@
     });
 
     document.addEventListener("touchend", (event) => {
-        if (startX === undefined) return;
+        if(gameMode == 2){
+            if (startX === undefined) return;
 
-        const endX = event.changedTouches[0].clientX;
-        const distance = endX - startX;
+            const endX = event.changedTouches[0].clientX;
+            const distance = endX - startX;
 
-        if (distance < -threshold) {
-            nextCard();
-        } else if (distance > threshold) {
-            previousCard();
+            if (distance < -threshold) {
+                nextCard();
+            } else if (distance > threshold) {
+                previousCard();
+            }
+
+            startX = undefined;
         }
 
-        startX = undefined;
     });
 
     async function deleteCard(){
@@ -128,10 +168,10 @@
         <div class="cardSlot">
             {#if cards.length != 0}
                 {#key cards[currentCard].cardId}
-                    <Card collection={name} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction} current={(cards[currentCard].originalIndex)+1} len={(cards.length)+known} toggleKnownCard={toggleKnowCard} known={known} nextCard={nextCard}/>
+                    <Card mode={gameMode} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction} current={(cards[currentCard].originalIndex)+1} len={len} progress={progress} toggleKnownCard={toggleKnowCard} toggleWrong={toggleWrong}/>
                 {/key}
             {:else if finished === 1}
-                <span>Bestanden</span>
+                <ProgressReport mode={gameMode} len={len} wrongCnt={wrong} rightCnt={known} name={name} id={id}/>
             {:else}
                 <span>Diese Kollektion enthält bisher noch keine Karten.</span>
             {/if}
@@ -140,9 +180,17 @@
         {#if cards.length != 0}
             <div class="learningActions">
                 <button class="dangerButton" onclick={deleteCard}><i class="fa-solid fa-trash"></i></button>
-                <button class="standardButton" onclick={previousCard}><i class="fa-solid fa-angle-left fa-xl"></i></button>
-                <button class="standardButton" onclick={changeSite}><i class="fa-solid fa-rotate fa-xl"></i></button>
-                <button class="standardButton" onclick={nextCard}><i class="fa-solid fa-angle-right fa-xl"></i></button>
+                {#if gameMode === 2}
+                    <button class="standardButton" onclick={previousCard}><i class="fa-solid fa-angle-left fa-xl"></i></button>
+                {:else}
+                    <button class="inactiveButton"><i class="fa-solid fa-angle-left fa-xl"></i></button>
+                {/if}
+                    <button class="standardButton" onclick={changeSite}><i class="fa-solid fa-rotate fa-xl"></i></button>
+                {#if gameMode === 2}
+                    <button class="standardButton" onclick={nextCard}><i class="fa-solid fa-angle-right fa-xl"></i></button>
+                {:else}
+                    <button class="inactiveButton"><i class="fa-solid fa-angle-right fa-xl"></i></button>
+                {/if}
                 <button class="accentButton"><i class="fa-regular fa-star"></i></button>
             </div>
         {/if}

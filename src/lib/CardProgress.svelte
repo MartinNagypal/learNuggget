@@ -1,12 +1,13 @@
 <script>
-    let {current, len, known} = $props();
+    let {current, len, progress} = $props();
     import {fade} from "svelte/transition";
+    console.log({progress});
 </script>
 
 <div class="cardProgress">
     <span>{current}</span>
-    <span> <span style="color:var(--success-color);">{known}</span> / {len}</span>
-    <progress class="cardProgressBar" value={known} max={len} transition:fade={{duration: 200}}></progress>
+    <span> <span style="color:var(--success-color);">{progress}</span> / {len}</span>
+    <progress class="cardProgressBar" value={progress} max={len} transition:fade={{duration: 200}}></progress>
 </div>
 
 <style>

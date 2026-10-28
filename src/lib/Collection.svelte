@@ -67,9 +67,9 @@
             <button class="dangerButton" onclick={removeCollection}><i class="fa-solid fa-trash"></i></button>
         </div>
         <div class="gamemodeButtons">
-            <button class="standardButton"><i class="fa-solid fa-infinity"></i></button>
-            <button class="standardButton"><i class="fa-solid fa-bullseye"></i></button>
-            <button class="standardButton" onclick={() => learningpage(name, id)}><i class="fa-solid fa-dumbbell"></i></button>
+            <button class="standardButton"onclick={() => learningpage(name, id, 2)}><i class="fa-solid fa-infinity"></i></button>
+            <button class="standardButton"onclick={() => learningpage(name, id, 1)}><i class="fa-solid fa-bullseye"></i></button>
+            <button class="standardButton" onclick={() => learningpage(name, id, 0)}><i class="fa-solid fa-dumbbell"></i></button>
         </div>
 
     </div>
