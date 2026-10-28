@@ -22,7 +22,12 @@
         console.log("this is " + name);
     }
 
+    let delCount = $state(0)
     async function removeCollection() {
+        if(delCount === 0){
+            delCount ++;
+            return;
+        }
         if(!name?.trim()){
             return;
         }
@@ -54,10 +59,10 @@
     </div>
     <div class="collectionActions">
         <div class="modifyButtons">
-            {#if addSingleCardActive === 0}
-                <button class="successButton" onclick={toggleShowCollectionSettings} in:scale={{ duration: 150, start: 0.8 }}>+</button>
+            {#if showCollectionSettings === 0}
+                <button class="successButton" onclick={toggleShowCollectionSettings} in:scale={{ duration: 150, start: 0.8 }}><i class="fa-solid fa-angle-down"></i></button>
             {:else}
-                <button class="dangerButton" onclick={toggleShowCollectionSettings} in:scale={{ duration: 150, start: 0.8 }}>x</button>
+                <button class="dangerButton" onclick={toggleShowCollectionSettings} in:scale={{ duration: 150, start: 0.8 }}><i class="fa-solid fa-angle-up"></i></button>
             {/if}
             <button class="dangerButton" onclick={removeCollection}><i class="fa-solid fa-trash"></i></button>
         </div>
