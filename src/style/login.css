@@ -1,0 +1,60 @@
+.login {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100dvh;
+    width: 100dvw;
+}
+
+.loginContent{
+    background-color: var(--accent-surface);
+    padding: 20pt;
+    border: 1.5pt solid var(--border-color);
+    border-radius: var(--border-radius-primary);
+    width: min(67.5%, 400px);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10pt;
+
+    box-shadow: 0 0 5px 3px var(--border-color);
+}
+
+.welcomeText{
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    padding-bottom: 15pt;
+    box-sizing: border-box;
+    border-bottom: 1.5pt solid var(--border-color);
+}
+
+.welcomeText span {
+    font-family: var(--font-header);
+    font-size: var(--font-size-big);
+    color: var(--accent-secondary);
+}
+
+.loginHeader {
+    font-family: var(--font-header);
+    text-size-adjust: var(--font-size-middle);
+}
+
+.loginAction {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5pt;
+}
+
+.register {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10pt;
+}

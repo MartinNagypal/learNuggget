@@ -19,42 +19,65 @@ func openDb() (*sql.DB, error) {
 
 func InitTables() error {
 	db, openErr := openDb()
-	if db != nil && openErr == nil {
-		defer db.Close()
-		_, errCollection := db.Exec(`
-		CREATE TABLE IF NOT EXISTS collection (
-		    Id INTEGER PRIMARY KEY,
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return openErr
+	}
+	defer db.Close()
+	_, errCollection := db.Exec(`
+		CREATE TABLE IF NOT EXISTS Collection (
+		    collectionID INTEGER PRIMARY KEY,
 		    name TEXT NOT NULL UNIQUE,
-		    right INTEGER DEFAULT 0,
-		    wrong INTEGER DEFAULT 0,
+		    userID INTEGER NOT NULL,
 		    createdAt DEFAULT CURRENT_TIMESTAMP
 			)
 		`)
 
-		if errCollection != nil {
-			log.Println("Error creating collection table in dbHandler.go:")
-			log.Fatal(errCollection)
-			return errCollection
-		}
+	if errCollection != nil {
+		LogError(GetFile(), errCollection)
+		return errCollection
+	}
 
-		_, errCard := db.Exec(`
+	_, errCard := db.Exec(`
 		CREATE TABLE IF NOT EXISTS Card (
-		    Id INTEGER PRIMARY KEY,
+		    cardID INTEGER PRIMARY KEY,
 		    question TEXT NOT NULL,
 			answer TEXT NOT NULL,
-			marked INTEGER DEFAULT 0,
 			collectionID INTEGER NOT NULL
 			)
 		`)
 
-		if errCard != nil {
-			log.Println("Error creating Card table in dbHandler.go:")
-			log.Fatal(errCard)
-			return errCard
-		}
-		return nil
-
-	} else {
-		return openErr
+	if errCard != nil {
+		LogError(GetFile(), errCard)
+		return errCard
 	}
+
+	_, errUser := db.Exec(`
+		CREATE TABLE IF NOT EXISTS UserT (
+			userID INTEGER PRIMARY KEY,
+			username TEXT UNIQUE NOT NULL,
+			password TEXT NOT NULL
+			)
+		`)
+
+	if errUser != nil {
+		LogError(GetFile(), errUser)
+		return errUser
+	}
+
+	_, errSession := db.Exec(`
+		CREATE TABLE IF NOT EXISTS SessionT (
+			sessionID INTEGER PRIMARY KEY,
+			sessionToken TEXT UNIQUE NOT NULL,
+			expiresAt INTEGER NOT NULL,
+			createdAt INTEGER NOT NULL DEFAULT (unixepoch()),
+		    userID INTEGER NOT NULL
+			)
+		`)
+
+	if errSession != nil {
+		LogError(GetFile(), errSession)
+		return errSession
+	}
+	return nil
 }

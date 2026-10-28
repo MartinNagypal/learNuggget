@@ -34,6 +34,7 @@ func main() {
 
 	routes.FlashcardRoutes(router)
 	routes.CollectionRoutes(router)
+	functions.CreateUser("ich232", "dsdwae323")
 
 	routerErr := router.Run(":3000")
 	if routerErr != nil {

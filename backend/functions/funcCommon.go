@@ -1,6 +1,9 @@
 package functions
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"log"
 	"path/filepath"
 	"runtime"
@@ -16,4 +19,19 @@ func LogError(file string, err error) {
 	log.Print(file)
 	log.Println(":")
 	log.Println(err)
+}
+
+func GenerateSessionToken() (string, error) {
+	token := make([]byte, 32) // 256 Bit
+
+	if _, err := rand.Read(token); err != nil {
+		return "", err
+	}
+
+	return base64.RawURLEncoding.EncodeToString(token), nil
+}
+
+func GenerateHash(data string) string {
+	sum := sha256.Sum256([]byte(data))
+	return base64.RawURLEncoding.EncodeToString(sum[:])
 }

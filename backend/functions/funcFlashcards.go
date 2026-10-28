@@ -24,7 +24,7 @@ func FetchCards(collectionID int) ([]Card, error) {
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query("SELECT question, answer, id, collectionID FROM Card WHERE collectionID = ?", collectionID)
+	rows, queryErr := db.Query("SELECT question, answer, cardID, collectionID FROM Card WHERE collectionID = ?", collectionID)
 	if queryErr != nil {
 		LogError(GetFile(), queryErr)
 		return nil, queryErr
@@ -52,7 +52,7 @@ func DeleteCard(cardId int) error {
 		LogError(GetFile(), dbErr)
 	}
 
-	_, execErr := db.Exec("DELETE FROM card WHERE id = ?", cardId)
+	_, execErr := db.Exec("DELETE FROM card WHERE cardID = ?", cardId)
 
 	if execErr != nil {
 		LogError(GetFile(), execErr)

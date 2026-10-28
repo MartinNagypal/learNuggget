@@ -11,7 +11,7 @@ func AddNewCollection(collectionName string) error {
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(`INSERT INTO collection (name) VALUES (?)`, collectionName)
+	_, execErr := db.Exec(`INSERT INTO Collection (name) VALUES (?)`, collectionName)
 	if execErr != nil {
 		LogError(GetFile(), execErr)
 		return execErr
@@ -26,13 +26,13 @@ func RemoveCollection(collectionName string) error {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
-	_, cardErr := db.Exec("DELETE FROM Card WHERE collectionID = (SELECT Id FROM collection WHERE name = ?)", collectionName)
+	_, cardErr := db.Exec("DELETE FROM Card WHERE collectionID = (SELECT collectionID FROM Collection WHERE name = ?)", collectionName)
 	if cardErr != nil {
 		LogError(GetFile(), cardErr)
 		return cardErr
 	}
 
-	_, collErr := db.Exec("DELETE FROM collection WHERE name = ?", collectionName)
+	_, collErr := db.Exec("DELETE FROM Collection WHERE name = ?", collectionName)
 	if collErr != nil {
 		LogError(GetFile(), collErr)
 		return collErr
@@ -67,7 +67,7 @@ func FetchCollections(orderState int) ([]CollectionElement, error) {
 		order = "DESC"
 	}
 
-	query := fmt.Sprintf("SELECT Id, name FROM collection ORDER BY %s COLLATE NOCASE %s", orderBy, order)
+	query := fmt.Sprintf("SELECT collectionID, name FROM Collection ORDER BY %s COLLATE NOCASE %s", orderBy, order)
 
 	rows, queryErr := db.Query(query) //Id auch fetchen, error handling verbessern
 	if queryErr != nil {

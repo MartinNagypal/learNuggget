@@ -1,10 +1,12 @@
 <script>
-    import {getContext, setContext} from "svelte";
+  import {getContext, setContext} from "svelte";
+  import Login from "./pages/Login.svelte";
   import Homepage from './pages/Homepage.svelte';
   import LearningPage from "./pages/LearningPage.svelte";
   import Topbar from './lib/Topbar.svelte'
   import Footer from './lib/Footer.svelte'
 
+  let isLoggedIn = $state(1);
   let page = $state(0);
   let selectedCollection = $state("")
   let selectedId = $state(0);
@@ -32,12 +34,17 @@
 
 <main class="app">
     <div class="topbar"><Topbar homepage={homePage}/></div>
- {#if page === 0}
-     <Homepage learningpage={learningPage} />
-  {:else}
-     {#key learningSession}
-         <LearningPage name={selectedCollection} id={selectedId} gameMode={gameMode}/>
-     {/key}
-  {/if}
+
+    {#if isLoggedIn === 1}
+        {#if page === 0}
+            <Homepage learningpage={learningPage} />
+        {:else}
+             {#key learningSession}
+                 <LearningPage name={selectedCollection} id={selectedId} gameMode={gameMode}/>
+             {/key}
+        {/if}
+    {:else}
+        <Login/>
+    {/if}
     <div class="footer"><Footer /></div>
 </main>
