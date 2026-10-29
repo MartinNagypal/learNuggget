@@ -49,3 +49,19 @@ func CreateUser(username, password string) (string, error) {
 
 	return sessionToken, nil
 }
+
+func CheckIfUserExists(username string) (bool, error) {
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return false, openErr
+	}
+	defer db.Close()
+	var exists bool
+	queryErr := db.QueryRow("SELECT EXISTS(SELECT 1 FROM UserT WHERE username = ?)", username).Scan(&exists)
+	if queryErr != nil {
+		LogError(GetFile(), queryErr)
+		return false, queryErr
+	}
+	return exists, nil
+}

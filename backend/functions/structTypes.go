@@ -11,3 +11,8 @@ type Card struct {
 	CardID       int    `json:"cardId"`
 	CollectionID int    `json:"collectionID"`
 }
+
+type RegisterUserElement struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
