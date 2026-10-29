@@ -151,3 +151,17 @@ html, body {
 .errorBorder {
     border: 1.5pt, solid, var(--failure-color) !important;
 }
+
+.infoScreen{
+    position: absolute;
+    top: 0;
+    z-index: 100;
+    width: 100dvw;
+
+    display:flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 25px;
+    height: 50px;
+}

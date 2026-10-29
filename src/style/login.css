@@ -58,3 +58,14 @@
     justify-content: center;
     gap: 10pt;
 }
+
+.passReq{
+    display:flex;
+    flex-direction: column;
+    gap: 2pt;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-small);
+    color: var(--failure-color);
+    font-family: var(--font-header);
+}
