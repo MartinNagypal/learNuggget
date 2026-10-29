@@ -4,6 +4,34 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func generateSession(userId int64) (string, error) {
+	sessionToken, sessionTokenErr := GenerateSessionToken()
+	if sessionTokenErr != nil {
+		LogError(GetFile(), sessionTokenErr)
+		return "", sessionTokenErr
+	}
+
+	tokenHash := GenerateHash(sessionToken)
+
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return "", openErr
+	}
+
+	_, saveSessionErr := db.Exec(
+		`INSERT INTO SessionT (userID, sessionToken, expiresAt, createdAt) VALUES (?, ?, unixepoch() + 43200, unixepoch())`,
+		userId,
+		tokenHash,
+	)
+
+	if saveSessionErr != nil {
+		LogError(GetFile(), saveSessionErr)
+		return "", saveSessionErr
+	}
+	return sessionToken, nil
+}
+
 func CreateUser(username, password string) (string, error) {
 	db, openDbErr := openDb()
 	if openDbErr != nil {
@@ -28,23 +56,10 @@ func CreateUser(username, password string) (string, error) {
 		return "", userIdErr
 	}
 
-	sessionToken, sessionTokenErr := GenerateSessionToken()
-	if sessionTokenErr != nil {
-		LogError(GetFile(), sessionTokenErr)
-		return "", sessionTokenErr
-	}
-
-	tokenHash := GenerateHash(sessionToken)
-
-	_, saveSessionErr := db.Exec(
-		`INSERT INTO SessionT (userID, sessionToken, expiresAt, createdAt) VALUES (?, ?, unixepoch() + 43200, unixepoch())`,
-		userID,
-		tokenHash,
-	)
-
-	if saveSessionErr != nil {
-		LogError(GetFile(), saveSessionErr)
-		return "", saveSessionErr
+	sessionToken, sessionErr := generateSession(userID)
+	if sessionErr != nil {
+		LogError(GetFile(), sessionErr)
+		return "", sessionErr
 	}
 
 	return sessionToken, nil
