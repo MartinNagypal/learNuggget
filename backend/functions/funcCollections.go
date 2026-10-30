@@ -4,14 +4,14 @@ import (
 	"fmt"
 )
 
-func AddNewCollection(collectionName string) error {
+func AddNewCollection(collectionName string, userID int) error {
 	db, openErr := openDb()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(`INSERT INTO Collection (name) VALUES (?)`, collectionName)
+	_, execErr := db.Exec(`INSERT INTO Collection (name, userID) VALUES (?, ?)`, collectionName, userID)
 	if execErr != nil {
 		LogError(GetFile(), execErr)
 		return execErr
@@ -19,20 +19,20 @@ func AddNewCollection(collectionName string) error {
 	return openErr
 }
 
-func RemoveCollection(collectionName string) error {
+func RemoveCollection(collectionName string, userID int) error {
 	db, openErr := openDb()
 	defer db.Close()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
-	_, cardErr := db.Exec("DELETE FROM Card WHERE collectionID = (SELECT collectionID FROM Collection WHERE name = ?)", collectionName)
+	_, cardErr := db.Exec("DELETE FROM Card WHERE collectionID = (SELECT collectionID FROM Collection WHERE name = ? AND userID = ?)", collectionName, userID)
 	if cardErr != nil {
 		LogError(GetFile(), cardErr)
 		return cardErr
 	}
 
-	_, collErr := db.Exec("DELETE FROM Collection WHERE name = ?", collectionName)
+	_, collErr := db.Exec("DELETE FROM Collection WHERE name = ? AND userID = ?", collectionName, userID)
 	if collErr != nil {
 		LogError(GetFile(), collErr)
 		return collErr
@@ -40,7 +40,7 @@ func RemoveCollection(collectionName string) error {
 	return nil
 }
 
-func FetchCollections(orderState int) ([]CollectionElement, error) {
+func FetchCollections(orderState int, userID int) ([]CollectionElement, error) {
 	//order: 0=createdAt DESC 1=createdAt, 2=name 3= name DESC
 	db, openErr := openDb()
 	if openErr != nil {
@@ -67,7 +67,7 @@ func FetchCollections(orderState int) ([]CollectionElement, error) {
 		order = "DESC"
 	}
 
-	query := fmt.Sprintf("SELECT collectionID, name FROM Collection ORDER BY %s COLLATE NOCASE %s", orderBy, order)
+	query := fmt.Sprintf("SELECT collectionID, name FROM Collection WHERE userID = %d ORDER BY %s COLLATE NOCASE %s", userID, orderBy, order)
 
 	rows, queryErr := db.Query(query) //Id auch fetchen, error handling verbessern
 	if queryErr != nil {

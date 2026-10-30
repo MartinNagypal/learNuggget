@@ -3,12 +3,24 @@ package handlers
 import (
 	"backend/functions"
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetCollections(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	userID, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
 	sortState, convErr := strconv.Atoi(c.Query("orderState"))
 	if convErr != nil {
 		functions.LogError(functions.GetFile(), convErr)
@@ -16,7 +28,7 @@ func GetCollections(c *gin.Context) {
 		return
 	}
 
-	collections, err := functions.FetchCollections(sortState)
+	collections, err := functions.FetchCollections(sortState, userID)
 	if err != nil {
 		functions.LogError(functions.GetFile(), err)
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -26,6 +38,17 @@ func GetCollections(c *gin.Context) {
 }
 
 func NewCollection(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	userID, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
 	name := c.Query("name")
 	if name == "" {
 		log.Println("Error in handleCollections.go")
@@ -33,7 +56,7 @@ func NewCollection(c *gin.Context) {
 		c.JSON(400, gin.H{"message": "parameter name is missing"})
 	}
 
-	dbErr := functions.AddNewCollection(name)
+	dbErr := functions.AddNewCollection(name, userID)
 	if dbErr != nil {
 		functions.LogError(functions.GetFile(), dbErr)
 		c.JSON(500, gin.H{"message": dbErr})
@@ -44,6 +67,17 @@ func NewCollection(c *gin.Context) {
 }
 
 func RemoveColellectionHandle(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	userID, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
 	name := c.Query("name")
 	if name == "" {
 		log.Println("Error in handleCollections.go:")
@@ -51,7 +85,7 @@ func RemoveColellectionHandle(c *gin.Context) {
 		c.JSON(400, gin.H{"message": "parameter name is missing"})
 	}
 
-	dbErr := functions.RemoveCollection(name)
+	dbErr := functions.RemoveCollection(name, userID)
 	if dbErr != nil {
 		functions.LogError(functions.GetFile(), dbErr)
 		c.JSON(500, gin.H{"message": dbErr})
@@ -61,6 +95,17 @@ func RemoveColellectionHandle(c *gin.Context) {
 }
 
 func GetCollectionLength(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	_, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
 	collectionID, convErr := strconv.Atoi(c.Query("id"))
 	if convErr != nil {
 		functions.LogError("handleCollections.go", convErr)

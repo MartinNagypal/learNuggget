@@ -15,9 +15,7 @@ func GetFile() string {
 }
 
 func LogError(file string, err error) {
-	log.Print("Error in ")
-	log.Print(file)
-	log.Println(":")
+	log.Printf("Error in %s :", file)
 	log.Println(err)
 }
 

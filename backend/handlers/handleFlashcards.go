@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/functions"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -9,6 +10,17 @@ import (
 )
 
 func AddNewCard(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	_, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
 	var newCard functions.Card
 	err := c.ShouldBindJSON(&newCard)
 	if err != nil {
@@ -26,6 +38,17 @@ func AddNewCard(c *gin.Context) {
 }
 
 func GetCards(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	_, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
 	id, convErr := strconv.Atoi(c.Query("collectionID"))
 
 	cards, fetchErr := functions.FetchCards(id)
@@ -46,6 +69,17 @@ func GetCards(c *gin.Context) {
 }
 
 func AddBulkCards(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	_, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
 	id, _ := strconv.Atoi(c.Query("id"))
 	var body struct {
 		Bulk string `json:"bulk"`
@@ -82,6 +116,17 @@ func AddBulkCards(c *gin.Context) {
 }
 
 func DeleteCard(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	_, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
 	id, _ := strconv.Atoi(c.Query("id"))
 	err := functions.DeleteCard(id)
 	if err != nil {
