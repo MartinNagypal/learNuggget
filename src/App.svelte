@@ -17,6 +17,17 @@
   let infoMessage = $state("");
   let infoError = $state(0);
 
+  async function verifySession(){
+      const res = await fetch("/api/auth/verifySession");
+      if(res.ok){
+          isLoggedIn = 1;
+          return
+      }
+      isLoggedIn = 0;
+  }
+  verifySession();
+  setInterval(verifySession, 60000);
+  setContext('verifySession', verifySession);
   function homePage(){
    page = 0;
   }
@@ -42,7 +53,7 @@
           infoVisible = 0;
           infoMessage = "";
           infoError = 0;
-      }, 2000);
+      }, 2500);
   }
 
   setContext('showInfo', showInfo);

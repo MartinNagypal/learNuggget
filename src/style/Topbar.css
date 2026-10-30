@@ -29,3 +29,15 @@
 .homebutton:active {
     transform: scale(0.8);
 }
+
+.topbarActions {
+    color: var(--accent-secondary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15pt;
+
+    i{
+        text-align: center;
+    }
+}

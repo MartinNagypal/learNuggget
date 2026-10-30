@@ -5,7 +5,6 @@
     import { fly } from 'svelte/transition';
     let {mode, text, answer, site, changeSite, direction, current, len, progress, toggleKnownCard, toggleWrong} = $props();
 
-
 </script>
 
 <div class="card" in:fly={{ x: direction * 80, duration: 300, opacity: 0 }} out:fly={{ x: direction * -80, duration: 200, opacity: 0 }}>

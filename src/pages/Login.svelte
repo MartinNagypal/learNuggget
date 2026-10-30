@@ -2,7 +2,7 @@
     import '../style/login.css';
     import {fade, fly} from "svelte/transition";
     import {getContext} from "svelte";
-
+    const verifySession = getContext('verifySession');
     const showInfo = getContext('showInfo');
     let registration = $state(0);
     let username = $state("")
@@ -69,9 +69,12 @@
         if(res.ok){
             registration = 0;
             showInfo("Succesfully registered", 0);
+            username = "";
+            password = "";
+            await verifySession();
         }
         else{
-            const data = await res.json()
+            const data = await res.json();
             showInfo(data.message, 1);
         }
     }
@@ -91,6 +94,29 @@
         return /[A-Z]/.test(password);
     }
 
+    async function login(){
+        const res = await fetch("/api/auth/login", {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        });
+        const data = await res.json();
+        if(!res.ok){
+            showInfo(data.message, 1);
+            password = "";
+            return
+        }
+        showInfo(data.message, 0);
+        username = "";
+        password = "";
+        await verifySession();
+    }
 
 </script>
 
@@ -133,7 +159,7 @@
             </div>
         {/if}
         <div class="loginAction">
-            <button class="standardButton">Anmelden</button>
+            <button class="standardButton" onclick={login}>Anmelden</button>
             <button class="accentButton" onclick={register}>Registrieren</button>
         </div>
     </div>

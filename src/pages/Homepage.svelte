@@ -43,14 +43,17 @@
         const params = new URLSearchParams({orderState: sortBy.toString()});
         const response = await fetch(`/api/collections?${params}`);
         const data = await response.json();
-        collections.length = 0;
-        collections = data.map(collection => ({
+        let newCollections = data.map(collection => ({
             name: collection.Name,
             id: collection.Id
         }));
+        if (JSON.stringify(collections) !== JSON.stringify(newCollections)) {
+            collections = 0;
+            collections = newCollections;
+        }
     }
     getCollections();
-    setInterval(getCollections, 4000);
+    setInterval(getCollections, 25000);
 
 </script>
 

@@ -59,6 +59,7 @@
     align-items: center;
     box-sizing: border-box;
     padding: 15pt;
+    padding-right: 0pt;
 }
 
 .cardBottom{

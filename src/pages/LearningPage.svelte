@@ -85,6 +85,9 @@
     function toggleKnowCard(){
         if(gameMode === 0){
             cards.splice(currentCard, 1);
+            if (cards.length > 0) {
+                currentCard = Math.min(currentCard, cards.length - 1);
+            }
             site = 0;
             known++;
             progress = known;
@@ -173,7 +176,7 @@
             {:else if finished === 1}
                 <ProgressReport mode={gameMode} len={len} wrongCnt={wrong} rightCnt={known} name={name} id={id}/>
             {:else}
-                <span>Diese Kollektion enthält bisher noch keine Karten.</span>
+                <span>Diese Kollektion enthält noch keine Karten.</span>
             {/if}
         </div>
 
