@@ -131,7 +131,20 @@
     opacity: 100;
     overflow: auto;
     margin-bottom: 10pt;
-    scrollbar-width: none;
+}
+
+.answer::-webkit-scrollbar {
+    width: 5px;
+}
+
+.answer::-webkit-scrollbar-track {
+    background: transparent;
+    margin:25px 0;
+}
+
+.answer::-webkit-scrollbar-thumb {
+    background-color: var(--accent-surface);
+    border-radius: 999px;
 }
 
 .hidden{

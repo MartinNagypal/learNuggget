@@ -37,7 +37,7 @@ h2{
     width: 100%;
     justify-items: center;
 
-    span {
+    > span {
         font-family: var(--font-header);
         color: var(--text-color-secondary);
         text-align: center;
