@@ -1,5 +1,10 @@
 package functions
 
+import (
+	"errors"
+	"strings"
+)
+
 func CreateGroup(name string, userID int) error {
 	db, openErr := openDb()
 	if openErr != nil {
@@ -7,6 +12,11 @@ func CreateGroup(name string, userID int) error {
 		return openErr
 	}
 	defer db.Close()
+
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return errors.New("name is empty")
+	}
 
 	_, queryErr := db.Exec("INSERT INTO CollectionGroup (name, userID) VALUES (?,?)", name, userID)
 	if queryErr != nil {
@@ -24,7 +34,7 @@ func GetGroups(userID int) ([]GroupElement, error) {
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query("SELECT GroupID, name FROM CollectionGroup WHERE userID = (?)", userID)
+	rows, queryErr := db.Query("SELECT GroupID, name FROM CollectionGroup WHERE userID = (?) ORDER BY GroupID DESC", userID)
 	if queryErr != nil {
 		LogError(GetFile(), queryErr)
 		return nil, queryErr

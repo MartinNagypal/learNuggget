@@ -18,6 +18,8 @@
     async function deleteGroup(){
         if(delGroup === 0){
             delGroup = 1;
+            showInfo("Click again to approve", 1);
+            set
             return;
         }
         const res = await fetch (`/api/group/delete?gid=${id}`, {
@@ -103,7 +105,7 @@
             {/if}
             <span>{name}</span>
         </div>
-        {#if create === 0}
+        {#if id != 0}
             <div class="delGroup">
                 <i class="fa-solid fa-trash" onclick={deleteGroup}></i>
             </div>

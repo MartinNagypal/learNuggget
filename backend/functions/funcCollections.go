@@ -45,7 +45,7 @@ func FetchCollections(userID, groupID int) ([]CollectionElement, error) {
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query("SELECT collectionID, name, groupID FROM Collection WHERE userID = (?)", userID)
+	rows, queryErr := db.Query("SELECT collectionID, name, groupID FROM Collection WHERE userID = (?) AND groupID = (?)", userID, groupID)
 	if queryErr != nil {
 		LogError(GetFile(), queryErr)
 		return nil, queryErr

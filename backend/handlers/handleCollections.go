@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"backend/functions"
-	"log"
+	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -49,7 +50,7 @@ func NewCollection(c *gin.Context) {
 		return
 	}
 
-	name := c.Query("name")
+	name := strings.TrimSpace(c.Query("name"))
 	groupID, convErr := strconv.Atoi(c.Query("gid"))
 	if convErr != nil {
 		functions.LogError(functions.GetFile(), convErr)
@@ -57,15 +58,16 @@ func NewCollection(c *gin.Context) {
 		return
 	}
 	if name == "" {
-		log.Println("Error in handleCollections.go")
-		log.Println("Wrong parameters, name is missing")
+		functions.LogError(functions.GetFile(), errors.New("Name is empty"))
 		c.JSON(400, gin.H{"message": "parameter name is missing"})
+		return
 	}
 
 	dbErr := functions.AddNewCollection(name, userID, groupID)
 	if dbErr != nil {
 		functions.LogError(functions.GetFile(), dbErr)
 		c.JSON(500, gin.H{"message": dbErr})
+		return
 	}
 
 	c.JSON(200, gin.H{"message": "Collection created succesfully"})
@@ -95,6 +97,7 @@ func RemoveColellectionHandle(c *gin.Context) {
 	if dbErr != nil {
 		functions.LogError(functions.GetFile(), dbErr)
 		c.JSON(500, gin.H{"message": dbErr})
+		return
 	}
 
 	c.JSON(200, gin.H{"message": "Collection removed succesfully"})

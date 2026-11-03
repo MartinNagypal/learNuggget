@@ -4,6 +4,7 @@ import (
 	"backend/functions"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +22,12 @@ func AddGroup(c *gin.Context) {
 		return
 	}
 
-	name := c.Query("name")
+	name := strings.TrimSpace(c.Query("name"))
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "parameter name is missing"})
+		return
+	}
+	
 	createErr := functions.CreateGroup(name, userID)
 	if createErr != nil {
 		functions.LogError(functions.GetFile(), createErr)
@@ -76,6 +82,7 @@ func DeleteGroup(c *gin.Context) {
 	if delErr != nil {
 		functions.LogError(functions.GetFile(), delErr)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": delErr.Error()})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Group deleted succesfully"})
 

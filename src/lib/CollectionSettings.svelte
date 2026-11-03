@@ -26,14 +26,6 @@
     <div class="collectionSettingsHeader">Bulk Hinzufügen</div>
     <textarea bind:value={text} placeholder="format: question#answer;"></textarea>
     <button class="successButton" onclick={addBulkCards}>Hinzufügen</button>
-
-    <div class="collectionSettingsHeader"> Gruppe hinzufügen</div>
-    <select class="selectGroup" name="Gruppe">
-        <option value="Gruppe1">Gruppe 1</option>
-        <option value="Gruppe2">Gruppe 2</option>
-        <option value="Gruppe3">Gruppe 3</option>
-    </select>
-    <button class="successButton" onclick={addBulkCards}>Hinzufügen</button>
 </div>
 
 <style>
