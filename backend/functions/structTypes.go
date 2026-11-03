@@ -3,6 +3,7 @@ package functions
 type CollectionElement struct {
 	Name string
 	Id   int
+	Gid  int
 }
 
 type Card struct {
@@ -21,4 +22,9 @@ type UserLogin struct {
 	Username string
 	Password string
 	id       int64
+}
+
+type GroupElement struct {
+	Name    string `json:"name"`
+	GroupID int    `json:"groupID"`
 }

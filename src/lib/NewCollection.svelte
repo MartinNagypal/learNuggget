@@ -1,6 +1,6 @@
 <script>
     let name = $state("");
-    let {closeNewCollection, reloadCollections} = $props();
+    let {closeNewCollection, reloadCollections, gid} = $props();
 
     async function postNewCollection() {
         if(name === "" || name === " "){
@@ -8,7 +8,7 @@
             return;
         }
 
-        const params = new URLSearchParams({name: name.trim()});
+        const params = new URLSearchParams({name: name.trim(), gid: gid});
         const res = await fetch(`/api/collections/new?${params}`, {
             method: 'POST'
         })

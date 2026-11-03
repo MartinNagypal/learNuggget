@@ -10,7 +10,11 @@ import (
 )
 
 func main() {
-	functions.InitTables()
+	initTablesErr := functions.InitTables()
+	if initTablesErr != nil {
+		functions.LogError(functions.GetFile(), initTablesErr)
+		return
+	}
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
@@ -35,6 +39,7 @@ func main() {
 	routes.FlashcardRoutes(router)
 	routes.CollectionRoutes(router)
 	routes.AuthRoutes(router)
+	routes.GroupRoutes(router)
 
 	routerErr := router.Run(":3000")
 	if routerErr != nil {

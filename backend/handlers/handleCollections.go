@@ -21,14 +21,14 @@ func GetCollections(c *gin.Context) {
 		return
 	}
 
-	sortState, convErr := strconv.Atoi(c.Query("orderState"))
+	groupID, convErr := strconv.Atoi(c.Query("gid"))
 	if convErr != nil {
 		functions.LogError(functions.GetFile(), convErr)
 		c.JSON(500, convErr.Error())
 		return
 	}
 
-	collections, err := functions.FetchCollections(sortState, userID)
+	collections, err := functions.FetchCollections(userID, groupID)
 	if err != nil {
 		functions.LogError(functions.GetFile(), err)
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -50,13 +50,19 @@ func NewCollection(c *gin.Context) {
 	}
 
 	name := c.Query("name")
+	groupID, convErr := strconv.Atoi(c.Query("gid"))
+	if convErr != nil {
+		functions.LogError(functions.GetFile(), convErr)
+		c.JSON(500, convErr.Error())
+		return
+	}
 	if name == "" {
 		log.Println("Error in handleCollections.go")
 		log.Println("Wrong parameters, name is missing")
 		c.JSON(400, gin.H{"message": "parameter name is missing"})
 	}
 
-	dbErr := functions.AddNewCollection(name, userID)
+	dbErr := functions.AddNewCollection(name, userID, groupID)
 	if dbErr != nil {
 		functions.LogError(functions.GetFile(), dbErr)
 		c.JSON(500, gin.H{"message": dbErr})

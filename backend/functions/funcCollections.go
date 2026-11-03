@@ -1,17 +1,13 @@
 package functions
 
-import (
-	"fmt"
-)
-
-func AddNewCollection(collectionName string, userID int) error {
+func AddNewCollection(collectionName string, userID, groupID int) error {
 	db, openErr := openDb()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(`INSERT INTO Collection (name, userID) VALUES (?, ?)`, collectionName, userID)
+	_, execErr := db.Exec(`INSERT INTO Collection (name, userID, groupID) VALUES (?, ?, ?)`, collectionName, userID, groupID)
 	if execErr != nil {
 		LogError(GetFile(), execErr)
 		return execErr
@@ -21,11 +17,11 @@ func AddNewCollection(collectionName string, userID int) error {
 
 func RemoveCollection(collectionName string, userID int) error {
 	db, openErr := openDb()
-	defer db.Close()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
+	defer db.Close()
 	_, cardErr := db.Exec("DELETE FROM Card WHERE collectionID = (SELECT collectionID FROM Collection WHERE name = ? AND userID = ?)", collectionName, userID)
 	if cardErr != nil {
 		LogError(GetFile(), cardErr)
@@ -40,36 +36,16 @@ func RemoveCollection(collectionName string, userID int) error {
 	return nil
 }
 
-func FetchCollections(orderState int, userID int) ([]CollectionElement, error) {
+func FetchCollections(userID, groupID int) ([]CollectionElement, error) {
 	//order: 0=createdAt DESC 1=createdAt, 2=name 3= name DESC
 	db, openErr := openDb()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
 		return nil, openErr
 	}
+	defer db.Close()
 
-	var orderBy, order string
-	switch orderState {
-	case 0:
-		orderBy = "createdAt"
-		order = "DESC"
-	case 1:
-		orderBy = "createdAt"
-		order = "ASC"
-	case 2:
-		orderBy = "name"
-		order = "ASC"
-	case 3:
-		orderBy = "name"
-		order = "DESC"
-	default:
-		orderBy = "name"
-		order = "DESC"
-	}
-
-	query := fmt.Sprintf("SELECT collectionID, name FROM Collection WHERE userID = %d ORDER BY %s COLLATE NOCASE %s", userID, orderBy, order)
-
-	rows, queryErr := db.Query(query) //Id auch fetchen, error handling verbessern
+	rows, queryErr := db.Query("SELECT collectionID, name, groupID FROM Collection WHERE userID = (?)", userID)
 	if queryErr != nil {
 		LogError(GetFile(), queryErr)
 		return nil, queryErr
@@ -78,7 +54,7 @@ func FetchCollections(orderState int, userID int) ([]CollectionElement, error) {
 	var collections []CollectionElement
 	for rows.Next() {
 		var collection CollectionElement
-		if err := rows.Scan(&collection.Id, &collection.Name); err != nil {
+		if err := rows.Scan(&collection.Id, &collection.Name, &collection.Gid); err != nil {
 			LogError(GetFile(), err)
 			return nil, err
 		}
@@ -98,6 +74,7 @@ func GetCollectionLen(collectionID int) (int, error) {
 		LogError(GetFile(), dbErr)
 		return 0, dbErr
 	}
+	defer db.Close()
 
 	var len int
 	queryErr := db.QueryRow("SELECT COUNT(*) FROM Card WHERE collectionID = ?", collectionID).Scan(&len)

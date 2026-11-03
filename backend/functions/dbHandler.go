@@ -27,8 +27,9 @@ func InitTables() error {
 	_, errCollection := db.Exec(`
 		CREATE TABLE IF NOT EXISTS Collection (
 		    collectionID INTEGER PRIMARY KEY,
-		    name TEXT NOT NULL UNIQUE,
+		    name TEXT NOT NULL,
 		    userID INTEGER NOT NULL,
+		    GroupID INTEGER DEFAULT 0,
 		    createdAt DEFAULT CURRENT_TIMESTAMP
 			)
 		`)
@@ -36,6 +37,19 @@ func InitTables() error {
 	if errCollection != nil {
 		LogError(GetFile(), errCollection)
 		return errCollection
+	}
+
+	_, errGroups := db.Exec(`
+		CREATE TABLE IF NOT EXISTS CollectionGroup (
+		    GroupID INTEGER PRIMARY KEY,
+		    name TEXT NOT NULL,
+		    userID INTEGER NOT NULL
+			)
+		`)
+
+	if errGroups != nil {
+		LogError(GetFile(), errGroups)
+		return errGroups
 	}
 
 	_, errCard := db.Exec(`

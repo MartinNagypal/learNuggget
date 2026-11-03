@@ -4,56 +4,34 @@
     import NewCollection from "../lib/NewCollection.svelte";
     import { fade } from 'svelte/transition';
     import { scale } from 'svelte/transition';
+    import Group from "../lib/Group.svelte";
+    import {get} from "svelte/store";
 
     let name = "Martin"
     let {learningpage} = $props();
-    let collections = $state([]);
-    let newCollection = $state(0);
-    let sortBy = $state(0);
+    let groups = $state([])
 
-    class collectionElement{
-        constructor(name, id) {
-            this.name = name;
-            this.id = id;
+    class GroupElement {
+        constructor(groupName, groupId) {
+            this.name = groupName;
+            this.id = groupId;
         }
     }
 
-    function toggleNewCollection(){
-        if(newCollection === 0){
-            newCollection = 1;
-        }
-    }
-
-    function closeNewCollection(){
-        if(newCollection === 1){
-            newCollection = 0;
-        }
-    }
-
-    function toggleSort(){
-        sortBy += 1;
-        if(sortBy === 4) {
-            sortBy = 0;
-        }
-        collections = [];
-        getCollections();
-    }
-
-    async function getCollections(){
-        const params = new URLSearchParams({orderState: sortBy.toString()});
-        const response = await fetch(`/api/collections?${params}`);
-        const data = await response.json();
-        let newCollections = data.map(collection => ({
-            name: collection.Name,
-            id: collection.Id
+    async function getGroups(){
+        const res = await fetch("/api/group/fetchall");
+        const data = await res.json();
+        if (!res.ok) return;
+        const newGroups = data.map(group => ({
+            name: group.name,
+            id: group.groupID
         }));
-        if (JSON.stringify(collections) !== JSON.stringify(newCollections)) {
-            collections = 0;
-            collections = newCollections;
+        if (JSON.stringify(groups) !== JSON.stringify(newGroups)) {
+            groups = newGroups;
         }
     }
-    getCollections();
-    setInterval(getCollections, 25000);
+
+    getGroups();
 
 </script>
 
@@ -63,28 +41,12 @@
         <span class="welcomeOrange">Übe weiter</span>
         <span> da wo du aufgehört hast!</span>
     </div>
-    <div class="collectionsHeader">
-        <h3 >Kollektionen</h3>
-        {#if sortBy === 0}
-            <h5 onclick={toggleSort}> <i class="fa-solid fa-arrow-down-short-wide fa-lg"></i> Neuste</h5>
-        {:else if sortBy === 1}
-            <h5 onclick={toggleSort}> <i class="fa-solid fa-arrow-up-short-wide fa-lg"></i> Älteste</h5>
-        {:else if sortBy === 2}
-            <h5 onclick={toggleSort}><i class="fa-solid fa-arrow-down-a-z fa-lg"></i> A-Z</h5>
-        {:else if sortBy === 3}
-            <h5 onclick={toggleSort}><i class="fa-solid fa-arrow-up-a-z fa-lg"></i> Z-A</h5>
-        {/if}
-    </div>
+    <div class="collectionsHeader"><h4>Kollektionen </h4></div>
     <div class="collectionsContainer">
-        {#each collections as collection (collection.id)}
-            <Collection name="{collection.name}" id={collection.id} learningpage={learningpage} reloadCollections={getCollections}/>
+        {#each groups as group (group.id)}
+            <Group name={group.name} id={group.id} create={0} learningPage={learningpage} reloadGroups={getGroups}/>
         {/each}
-        <div class="newCollection" onclick={toggleNewCollection}>
-            {#if newCollection === 0}
-                Neue Kollektion
-            {:else }
-                <div  in:fade={{duration: 200}}><NewCollection closeNewCollection={closeNewCollection} reloadCollections={getCollections}/></div>
-            {/if}
-        </div>
+        <Group name="Standard" id={0} create={0} learningPage={learningpage}/>
+        <Group name="Neue Gruppe" id="2" create={1} learningPage={learningpage}/>
     </div>
 </main>
