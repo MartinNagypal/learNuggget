@@ -2,8 +2,10 @@
     import '../style/login.css';
     import {fade, fly} from "svelte/transition";
     import {getContext} from "svelte";
+
     const verifySession = getContext('verifySession');
     const showInfo = getContext('showInfo');
+
     let registration = $state(0);
     let username = $state("")
     let password = $state("")
@@ -80,7 +82,7 @@
     }
 
     function checkPassLen(pass){
-        if(pass.length < 8){
+        if(pass.length < 8 || pass.length > 32){
             return false;
         }
         return true;
@@ -138,7 +140,7 @@
         <input type="password" placeholder="Passwort" class="mainInputStyle"  bind:value={password}>
         <div class="passReq">
             {#if passwordMinlen === -1}
-                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>Mindestens 8 Character</span>
+                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>Länge zwischen 8 - 32 Charakter</span>
             {/if}
             {#if passwordNumber === -1}
                 <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>Mindestens eine Nummer</span>

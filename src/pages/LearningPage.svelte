@@ -48,24 +48,6 @@
         len = cards.length;
     }
 
-    addEventListener("keydown", (event) => {
-        if(gameMode === 2){
-            if(event.key === " "){
-                changeSite();
-                return
-            }
-            if(event.key === "ArrowRight"){
-                nextCard();
-                return;
-            }
-            if(event.key === "ArrowLeft"){
-                previousCard();
-                return;
-            }
-        }
-
-    })
-
     fetchCards();
 
     function nextCard() {
@@ -121,33 +103,32 @@
                 finished = 1;
             }
         }
-
     }
 
     let startX;
     const threshold = 50;
 
-    document.addEventListener("touchstart", (event) => {
+    function handleKeydown(event) {
+        if (gameMode === 2) {
+            if (event.key === " ") { changeSite(); return; }
+            if (event.key === "ArrowRight") { nextCard(); return; }
+            if (event.key === "ArrowLeft") { previousCard(); return; }
+        }
+    }
+
+    function handleTouchStart(event) {
         startX = event.touches[0].clientX;
-    });
+    }
 
-    document.addEventListener("touchend", (event) => {
-        if(gameMode == 2){
+    function handleTouchEnd(event) {
+        if (gameMode == 2) {
             if (startX === undefined) return;
-
-            const endX = event.changedTouches[0].clientX;
-            const distance = endX - startX;
-
-            if (distance < -threshold) {
-                nextCard();
-            } else if (distance > threshold) {
-                previousCard();
-            }
-
+            const distance = event.changedTouches[0].clientX - startX;
+            if (distance < -threshold) nextCard();
+            else if (distance > threshold) previousCard();
             startX = undefined;
         }
-
-    });
+    }
 
     async function deleteCard(){
         if(delCount === 0){
@@ -166,6 +147,8 @@
 
 </script>
 
+<svelte:window onkeydown={handleKeydown} />
+<svelte:document ontouchstart={handleTouchStart} ontouchend={handleTouchEnd} />
 <div class="main">
     <div class="learningPageContent">
         <div class="cardSlot">

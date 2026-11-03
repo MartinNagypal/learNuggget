@@ -39,7 +39,7 @@ func GetGroups(userID int) ([]GroupElement, error) {
 		LogError(GetFile(), queryErr)
 		return nil, queryErr
 	}
-
+	defer rows.Close()
 	var groups []GroupElement
 	for rows.Next() {
 		var group GroupElement

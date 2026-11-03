@@ -1,18 +1,38 @@
 package functions
 
+import "errors"
+
 func AddNewCollection(collectionName string, userID, groupID int) error {
 	db, openErr := openDb()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
+		return openErr
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec(`INSERT INTO Collection (name, userID, groupID) VALUES (?, ?, ?)`, collectionName, userID, groupID)
+	result, execErr := db.Exec(`
+		INSERT INTO Collection (name, userID, groupID)
+		SELECT ?, ?, ?
+		WHERE ? = 0
+		   OR EXISTS (SELECT 1 FROM CollectionGroup WHERE groupID = ? AND userID = ?)`,
+		collectionName, userID, groupID,
+		groupID,
+		groupID, userID,
+	)
 	if execErr != nil {
 		LogError(GetFile(), execErr)
 		return execErr
 	}
-	return openErr
+
+	rows, rowsErr := result.RowsAffected()
+	if rowsErr != nil {
+		LogError(GetFile(), rowsErr)
+		return rowsErr
+	}
+	if rows == 0 {
+		return errors.New("´Group not found")
+	}
+	return nil
 }
 
 func RemoveCollection(collectionID, userID int) error {
@@ -37,7 +57,6 @@ func RemoveCollection(collectionID, userID int) error {
 }
 
 func FetchCollections(userID, groupID int) ([]CollectionElement, error) {
-	//order: 0=createdAt DESC 1=createdAt, 2=name 3= name DESC
 	db, openErr := openDb()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
@@ -51,6 +70,7 @@ func FetchCollections(userID, groupID int) ([]CollectionElement, error) {
 		return nil, queryErr
 
 	}
+	defer rows.Close()
 	var collections []CollectionElement
 	for rows.Next() {
 		var collection CollectionElement
@@ -69,7 +89,6 @@ func FetchCollections(userID, groupID int) ([]CollectionElement, error) {
 
 func GetCollectionLen(collectionID int) (int, error) {
 	db, dbErr := openDb()
-
 	if dbErr != nil {
 		LogError(GetFile(), dbErr)
 		return 0, dbErr

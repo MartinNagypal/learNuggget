@@ -1,13 +1,10 @@
 <script>
     import '../style/Homepage.css';
-    import Collection from '../lib/Collection.svelte'
-    import NewCollection from "../lib/NewCollection.svelte";
-    import { fade } from 'svelte/transition';
-    import { scale } from 'svelte/transition';
     import Group from "../lib/Group.svelte";
-    import {get} from "svelte/store";
+    import {getContext} from "svelte";
 
-    let name = "Martin"
+    const showInfo = getContext('showInfo');
+    let name = $state("")
     let {learningpage} = $props();
     let groups = $state([])
 
@@ -17,6 +14,14 @@
             this.id = groupId;
         }
     }
+
+    async function getUsername(){
+        const res = await fetch("/api/auth/username");
+        const data = await res.json();
+        name = data.username;
+    }
+
+    getUsername();
 
     async function getGroups(){
         const res = await fetch("/api/group/fetchall");

@@ -25,14 +25,14 @@ func GetCollections(c *gin.Context) {
 	groupID, convErr := strconv.Atoi(c.Query("gid"))
 	if convErr != nil {
 		functions.LogError(functions.GetFile(), convErr)
-		c.JSON(500, convErr.Error())
+		c.JSON(500, gin.H{"message": convErr.Error()})
 		return
 	}
 
 	collections, err := functions.FetchCollections(userID, groupID)
 	if err != nil {
 		functions.LogError(functions.GetFile(), err)
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"message": err.Error()})
 		return
 	}
 	c.JSON(200, collections)
@@ -54,7 +54,7 @@ func NewCollection(c *gin.Context) {
 	groupID, convErr := strconv.Atoi(c.Query("gid"))
 	if convErr != nil {
 		functions.LogError(functions.GetFile(), convErr)
-		c.JSON(500, convErr.Error())
+		c.JSON(500, gin.H{"message": convErr.Error()})
 		return
 	}
 	if name == "" {

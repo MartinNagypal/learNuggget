@@ -1,10 +1,13 @@
 <script>
+    import {getContext} from "svelte"
+    const showInfo = getContext('showInfo');
     let name = $state("");
     let {closeNewCollection, reloadCollections, gid} = $props();
 
     async function postNewCollection() {
         if(name === "" || name === " "){
             closeNewCollection();
+            showInfo("No name provided", 1);
             return;
         }
 
@@ -55,7 +58,7 @@
         }
 
         button {
-            padding: 5pt !important;
+            padding: 10pt !important;
             padding-left: 10pt !important;
             padding-right: 10pt !important;
             box-sizing: border-box !important;

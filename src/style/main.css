@@ -150,7 +150,7 @@ html, body {
 }
 
 .errorBorder {
-    border: 1.5pt, solid, var(--failure-color) !important;
+    border: 1.5pt solid var(--failure-color) !important;
 }
 
 .infoScreen{

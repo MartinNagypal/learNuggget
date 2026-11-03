@@ -19,10 +19,10 @@
 
 h2{
     font-family: var(--font-header);
-    color: var(--accent-primary)s
+    color: var(--accent-primary);
 }
 
-.standardButton {
+.learningActions .standardButton {
     padding: 10pt !important;
 }
 

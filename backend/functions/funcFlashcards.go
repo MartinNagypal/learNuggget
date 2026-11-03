@@ -6,7 +6,7 @@ func AddNewCard(question, answer string, collectionID int) error {
 		LogError(GetFile(), dbErr)
 		return dbErr
 	}
-
+	defer db.Close()
 	_, execErr := db.Exec("INSERT INTO Card (question, answer, collectionID) VALUES (?,?,?)", question, answer, collectionID)
 	if execErr != nil {
 		LogError(GetFile(), execErr)

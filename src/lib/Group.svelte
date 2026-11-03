@@ -1,7 +1,6 @@
 <script>
     import Collection from "./Collection.svelte";
-    import CollectionSettings from "./CollectionSettings.svelte";
-    import {getContext} from "svelte";
+    import {getContext, onDestroy} from "svelte";
     import { fly, fade } from 'svelte/transition';
     import NewCollection from "./NewCollection.svelte";
 
@@ -19,7 +18,9 @@
         if(delGroup === 0){
             delGroup = 1;
             showInfo("Click again to approve", 1);
-            set
+            setTimeout(() => {
+                delGroup = 0;
+            }, 3000);
             return;
         }
         const res = await fetch (`/api/group/delete?gid=${id}`, {
@@ -56,7 +57,8 @@
         }
     }
     getCollections();
-    setInterval(getCollections, 25000);
+    const interval = setInterval(getCollections, 25000);
+    onDestroy(() => clearInterval(interval));
 
     function toggleOpen(){
         if(open === 0){
@@ -80,7 +82,14 @@
     }
 
     async function createGroup(){
-        const res = await fetch(`/api/group/create?name=${newGroupName}`, {
+        if(newGroupName === "" || newGroupName === " "){
+            closeNewCollection();
+            showInfo("No name provided", 1);
+            return;
+        }
+
+        const params = new URLSearchParams({name: newGroupName.trim()});
+        const res = await fetch(`/api/group/create?${params}`, {
             method: "POST",
         });
         const data = await res.json();

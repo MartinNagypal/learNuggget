@@ -2,8 +2,10 @@
     import '../style/Collection.css';
     import AddSingleCard from "./AddSingleCard.svelte";
     import CollectionSettings from "./CollectionSettings.svelte";
-    import { onMount } from 'svelte';
+    import {getContext, onMount} from 'svelte';
     import { fade, fly, scale } from 'svelte/transition';
+
+    const showInfo = getContext('showInfo');
     let {name, id, learningpage, reloadCollections} = $props();
     let addSingleCardActive = $state(0);
     let showCollectionSettings = $state(0);
@@ -26,6 +28,10 @@
     async function removeCollection() {
         if(delCount === 0){
             delCount ++;
+            showInfo("Click again to approve", 1);
+            setTimeout(() => {
+                delCount = 0;
+            }, 3000);
             return;
         }
         if(!name?.trim()){

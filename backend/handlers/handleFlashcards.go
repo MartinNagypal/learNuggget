@@ -96,12 +96,12 @@ func AddBulkCards(c *gin.Context) {
 		Answer   string
 	}
 
-	bulkCardsCol := strings.Split(body.Bulk, ";")
+	bulkCardsCol := strings.Split(body.Bulk, ";;")
 	for _, element := range bulkCardsCol {
 		if element == "" {
 			continue
 		}
-		sepElement := strings.Split(element, "#")
+		sepElement := strings.SplitN(element, "@@", 2)
 		if len(sepElement) != 2 {
 			continue
 		}

@@ -11,4 +11,5 @@ func AuthRoutes(router *gin.Engine) {
 	router.POST("/auth/login", handlers.LoginUser)
 	router.GET("/auth/verifySession", handlers.VerifySessionValid)
 	router.GET("/auth/logout", handlers.Logout)
+	router.GET("/auth/username", handlers.FetchUsername)
 }

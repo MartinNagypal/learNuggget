@@ -15,6 +15,7 @@ func RegisterUser(c *gin.Context) {
 	if bindErr != nil {
 		functions.LogError(functions.GetFile(), bindErr)
 		c.JSON(500, gin.H{"message": bindErr.Error()})
+		return
 	}
 
 	if pwErr := functions.ValidatePw(newUser.Password); pwErr != nil {
@@ -92,4 +93,24 @@ func Logout(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Succesfully logged out"})
+}
+
+func FetchUsername(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	userID, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+	username, usernameErr := functions.GetUsername(userID)
+	if usernameErr != nil {
+		functions.LogError(functions.GetFile(), usernameErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": usernameErr.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"username": username})
 }

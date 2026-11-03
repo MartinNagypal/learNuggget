@@ -31,7 +31,6 @@ func generateSession(userId int64) (string, error) {
 		LogError(GetFile(), sessionTokenErr)
 		return "", sessionTokenErr
 	}
-
 	tokenHash := GenerateHash(sessionToken)
 
 	db, openErr := openDb()
@@ -39,6 +38,7 @@ func generateSession(userId int64) (string, error) {
 		LogError(GetFile(), openErr)
 		return "", openErr
 	}
+	defer db.Close()
 
 	_, saveSessionErr := db.Exec(
 		`INSERT INTO SessionT (userID, sessionToken, expiresAt, createdAt) VALUES (?, ?, unixepoch() + 43200, unixepoch())`,
@@ -92,6 +92,7 @@ func Login(username, password string) (string, int, error) {
 		LogError(GetFile(), openErr)
 		return "", http.StatusInternalServerError, openErr
 	}
+	defer db.Close()
 	var user UserLogin
 	queryErr := db.QueryRow("SELECT userID, username, password FROM UserT WHERE username = (?)", username).Scan(&user.id, &user.Username, &user.Password)
 	if queryErr != nil {
@@ -153,11 +154,28 @@ func FuncLogout(userID int) error {
 		LogError(GetFile(), dbErr)
 		return dbErr
 	}
-
+	defer db.Close()
 	_, execErr := db.Exec("DELETE FROM SessionT WHERE userID = ?", userID)
 	if execErr != nil {
 		LogError(GetFile(), execErr)
 		return execErr
 	}
 	return nil
+}
+
+func GetUsername(userID int) (string, error) {
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return "", openErr
+	}
+	defer db.Close()
+
+	var username string
+	scanErr := db.QueryRow("SELECT username FROM UserT WHERE userID = ?", userID).Scan(&username)
+	if scanErr != nil {
+		LogError(GetFile(), scanErr)
+		return "", scanErr
+	}
+	return username, nil
 }
