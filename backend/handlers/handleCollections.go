@@ -84,14 +84,14 @@ func RemoveColellectionHandle(c *gin.Context) {
 		return
 	}
 
-	name := c.Query("name")
-	if name == "" {
-		log.Println("Error in handleCollections.go:")
-		log.Println("Wrong parameters, name is missing")
-		c.JSON(400, gin.H{"message": "parameter name is missing"})
+	collectionID, convErr := strconv.Atoi(c.Query("id"))
+	if convErr != nil {
+		functions.LogError(functions.GetFile(), convErr)
+		c.JSON(500, convErr.Error())
+		return
 	}
 
-	dbErr := functions.RemoveCollection(name, userID)
+	dbErr := functions.RemoveCollection(collectionID, userID)
 	if dbErr != nil {
 		functions.LogError(functions.GetFile(), dbErr)
 		c.JSON(500, gin.H{"message": dbErr})

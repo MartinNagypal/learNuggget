@@ -46,7 +46,7 @@
         {#each groups as group (group.id)}
             <Group name={group.name} id={group.id} create={0} learningPage={learningpage} reloadGroups={getGroups}/>
         {/each}
-        <Group name="Standard" id={0} create={0} learningPage={learningpage}/>
-        <Group name="Neue Gruppe" id="2" create={1} learningPage={learningpage}/>
+        <Group name="Standard" id={0} create={0} learningPage={learningpage} reloadGroups={getGroups}/>
+        <Group name="Neue Gruppe" id="2" create={1} learningPage={learningpage} reloadGroups={getGroups}/>
     </div>
 </main>

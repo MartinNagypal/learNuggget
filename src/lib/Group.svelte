@@ -27,7 +27,7 @@
         if (!res.ok){
             showInfo(data.message, 1);
         }
-        showInfo(data.message, 1);
+        showInfo(data.message, 0);
         await reloadGroups();
     }
 
@@ -92,10 +92,6 @@
         await reloadGroups();
     }
 
-    if(id === 0){
-        open = 1;
-    }
-
 </script>
 <div class="group">
     <div class="groupHeader">
@@ -156,10 +152,9 @@
         color: var(--text-color-secondary);
         user-select: none;
 
-        border: 1.5pt solid var(--border-color);
-        border-top: 0;
+        border-bottom: 1.5pt solid var(--border-color);
         border-radius: var(--border-radius-primary);
-        padding: 2.5pt;
+        padding: 2.5pt 7.5pt;
 
         display: flex;
         flex-direction: row;

@@ -4,7 +4,7 @@
     min-width: 250px;
     max-width: min(75%, 400px);
     min-height: 300px;
-    max-height: 400px;
+    max-height: 450px;
 
     background-color: var(--accent-secondary);
     box-shadow: 0 0 5pt 2pt var(--border-color);

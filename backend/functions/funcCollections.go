@@ -15,20 +15,20 @@ func AddNewCollection(collectionName string, userID, groupID int) error {
 	return openErr
 }
 
-func RemoveCollection(collectionName string, userID int) error {
+func RemoveCollection(collectionID, userID int) error {
 	db, openErr := openDb()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
 	defer db.Close()
-	_, cardErr := db.Exec("DELETE FROM Card WHERE collectionID = (SELECT collectionID FROM Collection WHERE name = ? AND userID = ?)", collectionName, userID)
+	_, cardErr := db.Exec("DELETE FROM Card WHERE collectionID = (?)", collectionID)
 	if cardErr != nil {
 		LogError(GetFile(), cardErr)
 		return cardErr
 	}
 
-	_, collErr := db.Exec("DELETE FROM Collection WHERE name = ? AND userID = ?", collectionName, userID)
+	_, collErr := db.Exec("DELETE FROM Collection WHERE collectionID = (?) AND userID = (?)", collectionID, userID)
 	if collErr != nil {
 		LogError(GetFile(), collErr)
 		return collErr

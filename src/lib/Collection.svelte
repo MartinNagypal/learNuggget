@@ -31,8 +31,7 @@
         if(!name?.trim()){
             return;
         }
-        const params = new URLSearchParams({name: name.trim()});
-        const res = await fetch(`/api/collections/delete?${params}`, {
+        const res = await fetch(`/api/collections/delete?id=${id}`, {
             method: 'DELETE'
         })
         if (res.status === 200) {
