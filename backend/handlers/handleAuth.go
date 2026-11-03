@@ -16,10 +16,17 @@ func RegisterUser(c *gin.Context) {
 		functions.LogError(functions.GetFile(), bindErr)
 		c.JSON(500, gin.H{"message": bindErr.Error()})
 	}
+
+	if pwErr := functions.ValidatePw(newUser.Password); pwErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": pwErr.Error()})
+		return
+	}
+
 	exists, existsErr := functions.CheckIfUserExists(newUser.Username)
 	if existsErr != nil {
 		functions.LogError(functions.GetFile(), existsErr)
 		c.JSON(http.StatusConflict, existsErr.Error())
+		return
 	}
 	if exists == true {
 		c.JSON(http.StatusConflict, gin.H{"message": "User is already existing"})
@@ -29,6 +36,7 @@ func RegisterUser(c *gin.Context) {
 	if createErr != nil {
 		functions.LogError(functions.GetFile(), createErr)
 		c.JSON(http.StatusInternalServerError, createErr.Error())
+		return
 	}
 	c.SetCookie("sessionToken", sessionToken, 432000, "/", "", isProduction, true)
 	c.JSON(http.StatusOK, gin.H{"message": "user succesfully registered"})

@@ -59,6 +59,12 @@ func DelGroup(userID, groupID int) error {
 		return openErr
 	}
 	defer db.Close()
+
+	_, migrationErr := db.Exec("UPDATE Collection SET groupID = 0 WHERE groupID = (?) AND userID = (?)", groupID, userID)
+	if migrationErr != nil {
+		LogError(GetFile(), migrationErr)
+	}
+
 	_, err := db.Exec("DELETE FROM CollectionGroup WHERE groupID = (?) AND userID = (?)", groupID, userID)
 	if err != nil {
 		LogError(GetFile(), err)
