@@ -93,5 +93,20 @@ func InitTables() error {
 		LogError(GetFile(), errSession)
 		return errSession
 	}
+
+	_, errCollectionProgress := db.Exec(`
+		CREATE TABLE IF NOT EXISTS CollectionProgress (
+			collectionProgressID INTEGER PRIMARY KEY,
+			avgScore REAL DEFAULT 0,
+			lastScore REAL DEFAULT 0,
+			totalPlayed INTEGER DEFAULT 0,
+		    collectionID INTEGER NOT NULL
+			)
+		`)
+
+	if errCollectionProgress != nil {
+		LogError(GetFile(), errCollectionProgress)
+		return errCollectionProgress
+	}
 	return nil
 }

@@ -15,6 +15,10 @@
     display:flex;
     flex-direction: column;
     gap: 5pt;
+
+    button {
+        padding: 10pt;
+    }
 }
 
 .name {
@@ -29,9 +33,8 @@
     justify-content: center;
 }
 
-.collectionStats {
+.collectionStatComp {
     padding-bottom: 4pt;
-    padding-left: 10pt;
     border-bottom: 1.5pt solid var(--border-color);
 }
 

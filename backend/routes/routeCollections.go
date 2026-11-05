@@ -11,4 +11,6 @@ func CollectionRoutes(router *gin.Engine) {
 	router.POST("/collections/new", handlers.NewCollection)
 	router.DELETE("/collections/delete", handlers.RemoveColellectionHandle)
 	router.GET("/collection/len", handlers.GetCollectionLength)
+	router.GET("/collection/stats", handlers.GetCollectionStats)
+	router.PATCH("/collection/stats/update", handlers.UpdateCollectionProgress)
 }

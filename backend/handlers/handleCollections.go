@@ -131,3 +131,56 @@ func GetCollectionLength(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"len": len})
 }
+
+func GetCollectionStats(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	_, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
+	collectionID, convErr := strconv.Atoi(c.Query("id"))
+	if convErr != nil {
+		functions.LogError("handleCollections.go", convErr)
+		c.JSON(500, gin.H{"message": convErr.Error()})
+		return
+	}
+	stats, statsErr := functions.GetCollectionStats(collectionID)
+	if statsErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": statsErr.Error()})
+		return
+	}
+	c.JSON(200, stats)
+}
+
+func UpdateCollectionProgress(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	_, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+	var updatedStats functions.UpdatedCollectionStatsElement
+	bindErr := c.ShouldBind(&updatedStats)
+	if bindErr != nil {
+		functions.LogError(functions.GetFile(), bindErr)
+		c.JSON(500, gin.H{"message": bindErr.Error()})
+		return
+	}
+	updateErr := functions.UpdateCollectionStats(updatedStats)
+	if updateErr != nil {
+		functions.LogError(functions.GetFile(), updateErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": updateErr.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"message": "Collection updated succesfully"})
+}

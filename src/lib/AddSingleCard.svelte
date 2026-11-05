@@ -1,6 +1,6 @@
 <script>
 
-    let {CollectionID, toggleAddSingleCardActive, reloadCollectionLen} = $props();
+    let {CollectionID, toggleAddSingleCardActive, reloadCollectionStats} = $props();
     let Question = $state("");
     let Answer = $state("");
     let hasError = $state(0);
@@ -24,7 +24,7 @@
             hasError = 1;
             return;
         }
-        await reloadCollectionLen();
+        reloadCollectionStats();
         hasError = 0;
         toggleAddSingleCardActive();
 

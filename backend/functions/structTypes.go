@@ -24,6 +24,19 @@ type UserLogin struct {
 	id       int64
 }
 
+type CollectionStats struct {
+	Len         int     `json:"len"`
+	AvgScore    float64 `json:"avgScore"`
+	LastScore   float64 `json:"lastScore"`
+	TotalPlayed int     `json:"totalPlayed"`
+}
+
+type UpdatedCollectionStatsElement struct {
+	AvgScore     float64 `json:"avgScore"`
+	LastScore    float64 `json:"lastScore"`
+	CollectionID int     `json:"collectionID"`
+}
+
 type GroupElement struct {
 	Name    string `json:"name"`
 	GroupID int    `json:"groupID"`

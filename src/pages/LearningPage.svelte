@@ -5,6 +5,7 @@
 
     let {name, id, gameMode} = $props();
 
+    let loaded = $state(0);
     let site = $state(0);
     let delCount = $state(0)
     let cards = $state([]);
@@ -46,6 +47,7 @@
             originalIndex: index
         }));
         len = cards.length;
+        loaded = 1;
     }
 
     fetchCards();
@@ -150,36 +152,38 @@
 <svelte:window onkeydown={handleKeydown} />
 <svelte:document ontouchstart={handleTouchStart} ontouchend={handleTouchEnd} />
 <div class="main">
-    <div class="learningPageContent">
-        <div class="cardSlot">
+    {#if loaded === 1}
+        <div class="learningPageContent">
+            <div class="cardSlot">
+                {#if cards.length != 0}
+                    {#key cards[currentCard].cardId}
+                        <Card mode={gameMode} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction} current={(cards[currentCard].originalIndex)+1} len={len} progress={progress} toggleKnownCard={toggleKnowCard} toggleWrong={toggleWrong}/>
+                    {/key}
+                {:else if finished === 1}
+                    <ProgressReport mode={gameMode} len={len} wrongCnt={wrong} rightCnt={known} name={name} id={id}/>
+                {:else}
+                    <span>Diese Kollektion enthält noch keine Karten.</span>
+                {/if}
+            </div>
+
             {#if cards.length != 0}
-                {#key cards[currentCard].cardId}
-                    <Card mode={gameMode} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction} current={(cards[currentCard].originalIndex)+1} len={len} progress={progress} toggleKnownCard={toggleKnowCard} toggleWrong={toggleWrong}/>
-                {/key}
-            {:else if finished === 1}
-                <ProgressReport mode={gameMode} len={len} wrongCnt={wrong} rightCnt={known} name={name} id={id}/>
-            {:else}
-                <span>Diese Kollektion enthält noch keine Karten.</span>
+                <div class="learningActions">
+                    <button class="dangerButton" onclick={deleteCard}><i class="fa-solid fa-trash"></i></button>
+                    {#if gameMode === 2}
+                        <button class="standardButton" onclick={previousCard}><i class="fa-solid fa-angle-left fa-xl"></i></button>
+                    {:else}
+                        <button class="inactiveButton"><i class="fa-solid fa-angle-left fa-xl"></i></button>
+                    {/if}
+                        <button class="standardButton" onclick={changeSite}><i class="fa-solid fa-rotate fa-xl"></i></button>
+                    {#if gameMode === 2}
+                        <button class="standardButton" onclick={nextCard}><i class="fa-solid fa-angle-right fa-xl"></i></button>
+                    {:else}
+                        <button class="inactiveButton"><i class="fa-solid fa-angle-right fa-xl"></i></button>
+                    {/if}
+                    <button class="accentButton"><i class="fa-regular fa-star"></i></button>
+                </div>
             {/if}
         </div>
-
-        {#if cards.length != 0}
-            <div class="learningActions">
-                <button class="dangerButton" onclick={deleteCard}><i class="fa-solid fa-trash"></i></button>
-                {#if gameMode === 2}
-                    <button class="standardButton" onclick={previousCard}><i class="fa-solid fa-angle-left fa-xl"></i></button>
-                {:else}
-                    <button class="inactiveButton"><i class="fa-solid fa-angle-left fa-xl"></i></button>
-                {/if}
-                    <button class="standardButton" onclick={changeSite}><i class="fa-solid fa-rotate fa-xl"></i></button>
-                {#if gameMode === 2}
-                    <button class="standardButton" onclick={nextCard}><i class="fa-solid fa-angle-right fa-xl"></i></button>
-                {:else}
-                    <button class="inactiveButton"><i class="fa-solid fa-angle-right fa-xl"></i></button>
-                {/if}
-                <button class="accentButton"><i class="fa-regular fa-star"></i></button>
-            </div>
-        {/if}
-    </div>
+    {/if}
 </div>
 

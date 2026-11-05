@@ -2,14 +2,14 @@
     import '../style/Collection.css';
     import AddSingleCard from "./AddSingleCard.svelte";
     import CollectionSettings from "./CollectionSettings.svelte";
-    import {getContext, onMount} from 'svelte';
+    import CollectionStats from "./CollectionStats.svelte";
+    import {getContext} from 'svelte';
     import { fade, fly, scale } from 'svelte/transition';
 
     const showInfo = getContext('showInfo');
     let {name, id, learningpage, reloadCollections} = $props();
     let addSingleCardActive = $state(0);
     let showCollectionSettings = $state(0);
-    let len = $state(0);
 
     function toggleShowCollectionSettings(){
         if(showCollectionSettings === 0){
@@ -18,10 +18,6 @@
         else {
             showCollectionSettings = 0;
         }
-    }
-
-    function printName(){
-        console.log("this is " + name);
     }
 
     let delCount = $state(0)
@@ -45,22 +41,17 @@
         }
     }
 
-    async function getCollectionLen(){
-        const res = await fetch(`/api/collection/len?id=${id}`)
-        const data = await res.json()
-        console.log(data.len);
-        len = data.len;
+    let statsVersion = $state(0);
+    function reloadStats(){
+        statsVersion++;
     }
-    onMount(() => {
-        getCollectionLen();
-    });
 
 </script>
 
 <div class="collection" out:fly={{ x: 80, duration: 300, opacity: 0 }} in:fly={{ x: -80, duration: 200, opacity: 0 }}>
     <div class="name">{name}</div>
-    <div class="collectionStats">
-        <span><b>{len}</b> Karten</span>
+    <div class="collectionStatComp">
+        <CollectionStats id={id} version={statsVersion}/>
     </div>
     <div class="collectionActions">
         <div class="modifyButtons">
@@ -79,7 +70,7 @@
 
     </div>
     {#if showCollectionSettings === 1}
-        <AddSingleCard CollectionID={id} toggleAddSingleCardActive={showCollectionSettings} reloadCollectionLen={getCollectionLen}/>
-        <CollectionSettings id={id} toggleShowCollectionSettings={toggleShowCollectionSettings} reloadCollectionLen={getCollectionLen}/>
+        <AddSingleCard CollectionID={id} toggleAddSingleCardActive={toggleShowCollectionSettings} reloadCollectionStats={reloadStats}/>
+        <CollectionSettings id={id} toggleShowCollectionSettings={toggleShowCollectionSettings} reloadCollectionLen={reloadStats}/>
     {/if}
 </div>
