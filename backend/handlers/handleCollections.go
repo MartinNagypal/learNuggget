@@ -69,9 +69,7 @@ func NewCollection(c *gin.Context) {
 		c.JSON(500, gin.H{"message": dbErr})
 		return
 	}
-
 	c.JSON(200, gin.H{"message": "Collection created succesfully"})
-
 }
 
 func RemoveColellectionHandle(c *gin.Context) {
@@ -99,7 +97,6 @@ func RemoveColellectionHandle(c *gin.Context) {
 		c.JSON(500, gin.H{"message": dbErr})
 		return
 	}
-
 	c.JSON(200, gin.H{"message": "Collection removed succesfully"})
 }
 

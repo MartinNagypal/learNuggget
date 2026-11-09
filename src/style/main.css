@@ -15,6 +15,18 @@
     --failure-color: #D6455D;
     --formula-color: #F5E3B3;
 
+    --rank-gold: #E5A823;
+    --rank-gold-surface: #FBF1D9;
+    --rank-gold-text: #9A6A08;
+
+    --rank-silver: #9AA3B8;
+    --rank-silver-surface: #EEF1F6;
+    --rank-silver-text: #5B6478;
+
+    --rank-bronze: #C07A45;
+    --rank-bronze-surface: #F7E8DC;
+    --rank-bronze-text: #8A4B22;
+
     --font-header: 'Nunito', system-ui, sans-serif;
     --font-text: 'Atkinson Hyperlegible', system-ui, sans-serif;
     --font-size-big: 16pt;
@@ -135,7 +147,7 @@ html, body {
 }
 
 .app{
-    height: 100dvh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -143,6 +155,7 @@ html, body {
 .topbar{
     position: sticky;
     top: 0;
+    z-index: 10;
 }
 
 .footer {
@@ -154,15 +167,31 @@ html, body {
 }
 
 .infoScreen{
-    position: absolute;
-    top: 0;
+    position: fixed;
+    top: 20pt;
     z-index: 100;
-    width: 100dvw;
+    left: 0;
+    right: 0;
 
     display:flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    margin-top: 25px;
     height: 50px;
+}
+
+.pageContent{
+    flex: 1;
+    min-width: 100dvw;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.mainNavBar{
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    z-index: 10;
 }

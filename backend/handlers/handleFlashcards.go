@@ -26,12 +26,14 @@ func AddNewCard(c *gin.Context) {
 	if err != nil {
 		functions.LogError(functions.GetFile(), err)
 		c.JSON(500, gin.H{"message": err.Error()})
+		return
 	}
 
 	dbErr := functions.AddNewCard(newCard.Question, newCard.Answer, newCard.CollectionID)
 	if dbErr != nil {
 		functions.LogError(functions.GetFile(), dbErr)
 		c.JSON(500, gin.H{"message": dbErr.Error()})
+		return
 	}
 
 	c.JSON(200, gin.H{"message": "Card added succesfully"})
@@ -111,7 +113,6 @@ func AddBulkCards(c *gin.Context) {
 			c.JSON(500, gin.H{"message": "One or more cards could not be added..."})
 			continue
 		}
-		println(sepElement)
 	}
 }
 

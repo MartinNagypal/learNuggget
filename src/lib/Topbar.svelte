@@ -25,7 +25,6 @@
     {#if isLoggedIn === 1}
         <div class="topbarActions">
             <i class="fa-solid fa-right-from-bracket fa-xl homebutton" onclick={logout}></i>
-            <span class="brandName homebutton" onclick={homepage}><i class="fa-solid fa-house"></i></span>
         </div>
 
     {/if}

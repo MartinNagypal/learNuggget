@@ -2,6 +2,7 @@
     import '../style/Homepage.css';
     import Group from "../lib/Group.svelte";
     import {getContext} from "svelte";
+    import {fade} from "svelte/transition";
 
     const showInfo = getContext('showInfo');
     let name = $state("")
@@ -40,7 +41,7 @@
 
 </script>
 
-<main class="homepage">
+<main class="homepage" in:fade={{duration: 200}}>
     <div class="welcome">
         <span>Hallo <span style="color:var(--success-color)">{name}</span></span>
         <span class="welcomeOrange">Übe weiter</span>

@@ -41,3 +41,8 @@ type GroupElement struct {
 	Name    string `json:"name"`
 	GroupID int    `json:"groupID"`
 }
+
+type RankElement struct {
+	Username string  `json:"username"`
+	AvgScore float64 `json:"avgScore"`
+}

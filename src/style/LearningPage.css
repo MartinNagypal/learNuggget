@@ -2,14 +2,13 @@
     display: flex;
     flex-direction: column;
     gap: 25pt;
-    flex:1;
     overflow: hidden;
-
+    flex: 1;
 }
 
 .learningPageContent{
     display: flex;
-    height: 100%;
+    flex: 1;
     flex-direction: column;
     justify-content: center;
     align-items: center;
