@@ -3,6 +3,7 @@ package functions
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -97,7 +98,18 @@ func CreateUser(username, password string) (string, error) {
 	return sessionToken, nil
 }
 
+const maxLoginAttempts = 5
+const loginLockSeconds = 300
+
 func Login(username, password string) (string, int, error) {
+	lockedFor, lockErr := getLoginLock(username)
+	if lockErr != nil {
+		return "", http.StatusInternalServerError, lockErr
+	}
+	if lockedFor > 0 {
+		return "", http.StatusTooManyRequests, lockedError(lockedFor)
+	}
+
 	db, openErr := openDb()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
@@ -108,7 +120,7 @@ func Login(username, password string) (string, int, error) {
 	queryErr := db.QueryRow("SELECT userID, username, password FROM UserT WHERE username = (?)", username).Scan(&user.id, &user.Username, &user.Password)
 	if queryErr != nil {
 		if queryErr == sql.ErrNoRows {
-			return "", http.StatusForbidden, errors.New("Wrong username or password")
+			return failedLogin(username)
 		}
 		LogError(GetFile(), queryErr)
 		return "", http.StatusInternalServerError, queryErr
@@ -117,7 +129,12 @@ func Login(username, password string) (string, int, error) {
 	encryptErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if encryptErr != nil {
 		LogError(GetFile(), encryptErr)
-		return "", http.StatusForbidden, errors.New("Wrong username or password")
+		return failedLogin(username)
+	}
+
+	resetErr := resetLoginAttempts(username)
+	if resetErr != nil {
+		return "", http.StatusInternalServerError, resetErr
 	}
 
 	sessionToken, sessionErr := generateSession(user.id)
@@ -126,6 +143,103 @@ func Login(username, password string) (string, int, error) {
 	}
 
 	return sessionToken, http.StatusOK, nil
+}
+
+func failedLogin(username string) (string, int, error) {
+	attemptsLeft, attemptErr := registerFailedLogin(username)
+	if attemptErr != nil {
+		return "", http.StatusInternalServerError, attemptErr
+	}
+	if attemptsLeft == 0 {
+		return "", http.StatusTooManyRequests, lockedError(loginLockSeconds)
+	}
+	if attemptsLeft == 1 {
+		return "", http.StatusForbidden, errors.New("Wrong username or password. 1 attempt left")
+	}
+	return "", http.StatusForbidden, fmt.Errorf("Wrong username or password. %d attempts left", attemptsLeft)
+}
+
+func lockedError(seconds int64) error {
+	minutes := (seconds + 59) / 60
+	if minutes == 1 {
+		return errors.New("Too many failed attempts. Try again in 1 minute")
+	}
+	return fmt.Errorf("Too many failed attempts. Try again in %d minutes", minutes)
+}
+
+func getLoginLock(username string) (int64, error) {
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return 0, openErr
+	}
+	defer db.Close()
+
+	var lockedUntil int64
+	queryErr := db.QueryRow("SELECT lockedUntil FROM LoginAttemptT WHERE username = ?", username).Scan(&lockedUntil)
+	if queryErr != nil {
+		if queryErr == sql.ErrNoRows {
+			return 0, nil
+		}
+		LogError(GetFile(), queryErr)
+		return 0, queryErr
+	}
+
+	remaining := lockedUntil - time.Now().Unix()
+	if remaining < 0 {
+		return 0, nil
+	}
+	return remaining, nil
+}
+
+func registerFailedLogin(username string) (int, error) {
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return 0, openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec(`
+		INSERT INTO LoginAttemptT (username, attempts) VALUES (?, 1)
+		ON CONFLICT(username) DO UPDATE SET attempts = attempts + 1`, username)
+	if execErr != nil {
+		LogError(GetFile(), execErr)
+		return 0, execErr
+	}
+
+	var attempts int
+	queryErr := db.QueryRow("SELECT attempts FROM LoginAttemptT WHERE username = ?", username).Scan(&attempts)
+	if queryErr != nil {
+		LogError(GetFile(), queryErr)
+		return 0, queryErr
+	}
+
+	if attempts >= maxLoginAttempts {
+		_, lockErr := db.Exec("UPDATE LoginAttemptT SET attempts = 0, lockedUntil = unixepoch() + ? WHERE username = ?", loginLockSeconds, username)
+		if lockErr != nil {
+			LogError(GetFile(), lockErr)
+			return 0, lockErr
+		}
+		return 0, nil
+	}
+	return maxLoginAttempts - attempts, nil
+}
+
+func resetLoginAttempts(username string) error {
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec("DELETE FROM LoginAttemptT WHERE username = ?", username)
+	if execErr != nil {
+		LogError(GetFile(), execErr)
+		return execErr
+	}
+	return nil
 }
 
 func VerifySession(sessionToken string) (int, error) {

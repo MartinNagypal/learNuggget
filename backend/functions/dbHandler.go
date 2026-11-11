@@ -96,6 +96,19 @@ func InitTables() error {
 		return errSession
 	}
 
+	_, errLoginAttempt := db.Exec(`
+		CREATE TABLE IF NOT EXISTS LoginAttemptT (
+			username TEXT PRIMARY KEY,
+			attempts INTEGER NOT NULL DEFAULT 0,
+			lockedUntil INTEGER NOT NULL DEFAULT 0
+			)
+		`)
+
+	if errLoginAttempt != nil {
+		LogError(GetFile(), errLoginAttempt)
+		return errLoginAttempt
+	}
+
 	_, errCollectionProgress := db.Exec(`
 		CREATE TABLE IF NOT EXISTS CollectionProgress (
 			collectionProgressID INTEGER PRIMARY KEY,
