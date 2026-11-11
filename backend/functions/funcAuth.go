@@ -66,7 +66,18 @@ func CreateUser(username, password string) (string, error) {
 		return "", encryptionErr
 	}
 
-	result, execErr := db.Exec("INSERT INTO UserT (username, password) VALUES (?, ?) ", username, string(encryptedPassword))
+	var userCount int
+	countErr := db.QueryRow("SELECT COUNT(*) FROM UserT").Scan(&userCount)
+	if countErr != nil {
+		LogError(GetFile(), countErr)
+		return "", countErr
+	}
+	root := 0
+	if userCount == 0 {
+		root = 1
+	}
+
+	result, execErr := db.Exec("INSERT INTO UserT (username, password, root) VALUES (?, ?, ?) ", username, string(encryptedPassword), root)
 	if execErr != nil {
 		LogError(GetFile(), execErr)
 		return "", execErr
@@ -184,6 +195,14 @@ func GetUsername(userID int) (string, error) {
 }
 
 func DeleteAccount(userID int) error {
+	root, rootErr := IsRoot(userID)
+	if rootErr != nil {
+		return rootErr
+	}
+	if root {
+		return errors.New("Root user can't be deleted")
+	}
+
 	db, openErr := openDb()
 	if openErr != nil {
 		LogError(GetFile(), openErr)

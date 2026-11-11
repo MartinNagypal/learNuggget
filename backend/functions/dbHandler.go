@@ -71,7 +71,8 @@ func InitTables() error {
 		CREATE TABLE IF NOT EXISTS UserT (
 			userID INTEGER PRIMARY KEY,
 			username TEXT UNIQUE NOT NULL,
-			password TEXT NOT NULL
+			password TEXT NOT NULL,
+			root INTEGER NOT NULL DEFAULT 0
 			)
 		`)
 

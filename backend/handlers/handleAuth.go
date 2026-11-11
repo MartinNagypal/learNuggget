@@ -112,7 +112,12 @@ func FetchUsername(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": usernameErr.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"username": username})
+	root, rootErr := functions.IsRoot(userID)
+	if rootErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": rootErr.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"username": username, "root": root})
 }
 
 func DelAccount(c *gin.Context) {

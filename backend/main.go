@@ -41,6 +41,7 @@ func main() {
 	routes.AuthRoutes(router)
 	routes.GroupRoutes(router)
 	routes.SocialRoutes(router)
+	routes.AdminRoutes(router)
 
 	routerErr := router.Run(":3000")
 	if routerErr != nil {

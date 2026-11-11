@@ -12,6 +12,22 @@ type MarkedCollectionElement struct {
 	Marked int    `json:"marked"`
 }
 
+type AdminStats struct {
+	Users       int `json:"users"`
+	Collections int `json:"collections"`
+	Groups      int `json:"groups"`
+	Cards       int `json:"cards"`
+}
+
+type AdminUserElement struct {
+	UserID      int    `json:"userID"`
+	Username    string `json:"username"`
+	Root        bool   `json:"root"`
+	Collections int    `json:"collections"`
+	Cards       int    `json:"cards"`
+	LastActive  int64  `json:"lastActive"`
+}
+
 type Card struct {
 	Question     string `json:"question"`
 	Answer       string `json:"answer"`

@@ -10,6 +10,7 @@
   import SocialPage from "./pages/SocialPage.svelte";
   import LearnPage from "./pages/LearnPage.svelte";
   import ConfirmDeleteAccount from "./lib/ConfirmDeleteAccount.svelte";
+  import AdminPage from "./pages/AdminPage.svelte";
 
   let isLoggedIn = $state(0);
   let page = $state(0);
@@ -23,6 +24,7 @@
   let infoMessage = $state("");
   let infoError = $state(0);
   let name = $state("");
+  let isRoot = $state(false);
   let showConfirmDeleteAccount = $state(0);
 
   async function verifySession(){
@@ -33,6 +35,7 @@
           return
       }
       isLoggedIn = 0;
+      isRoot = false;
       page = 0;
   }
   verifySession();
@@ -89,8 +92,14 @@
       const res = await fetch("/api/auth/username");
       const data = await res.json();
       name = data.username;
+      isRoot = data.root === true;
   }
   getUsername();
+
+  function getIsRoot(){
+      return isRoot;
+  }
+  setContext('isRoot', getIsRoot);
 
   function toggleConfirmAccountDeletion(){
       if (showConfirmDeleteAccount === 0){
@@ -139,6 +148,8 @@
                 <SocialPage name={name}/>
             {:else if page === 3}
                 <LearnPage/>
+            {:else if page === 4 && isRoot}
+                <AdminPage/>
             {/if}
         {:else}
             <Login/>

@@ -5,6 +5,8 @@
     const toggleShowAccountDelete = getContext('toggleConfirmAccountDeletion');
     const showInfo = getContext('showInfo');
     const toggleIsLoggedIn = getContext('toggleIsLoggedIn');
+    const isRoot = getContext('isRoot');
+    const setPage = getContext('setPage');
     let showSettings = $state(0);
 
     function toggleShowsettings(){
@@ -30,6 +32,9 @@
             <div onclick={toggleShowAccountDelete} class="settingSelectionElement">Delete Account</div>
             <div onclick={logout} class="settingSelectionElement">Logout</div>
             <div class="settingSelectionElement" onclick={logoutFromAllSession}>Logout from all Sessions</div>
+            {#if isRoot()}
+                <div class="settingSelectionElement adminElement" onclick={() => setPage(4)}>Admin Panel</div>
+            {/if}
         </div>
     {/if}
 </div>
@@ -58,5 +63,9 @@
 
     .settingSelectionElement{
         cursor: pointer;
+    }
+
+    .adminElement{
+        color: var(--accent-primary);
     }
 </style>
