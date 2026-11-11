@@ -10,7 +10,7 @@
 
     async function deleteAccount(){
         if (input === "CONFIRM"){
-            const res = await fetch("/api/auth/deleteUser");
+            const res = await fetch("/api/auth/deleteUser", { method: "DELETE" });
             const data = await res.json();
             if(!res.ok){
                 showInfo(data.message, 1);

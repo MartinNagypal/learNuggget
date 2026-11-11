@@ -8,7 +8,6 @@ func IsRoot(userID int) (bool, error) {
 		LogError(GetFile(), openErr)
 		return false, openErr
 	}
-	defer db.Close()
 
 	var root bool
 	queryErr := db.QueryRow("SELECT root FROM UserT WHERE userID = ?", userID).Scan(&root)
@@ -28,7 +27,6 @@ func GetAdminStats() (AdminStats, error) {
 		LogError(GetFile(), openErr)
 		return AdminStats{}, openErr
 	}
-	defer db.Close()
 
 	var stats AdminStats
 	queryErr := db.QueryRow(`
@@ -51,7 +49,6 @@ func FetchAllUsers() ([]AdminUserElement, error) {
 		LogError(GetFile(), openErr)
 		return users, openErr
 	}
-	defer db.Close()
 
 	rows, queryErr := db.Query(`
 		SELECT u.userID, u.username, u.root,

@@ -10,6 +10,13 @@ import (
 // that other users' collection IDs cannot be probed.
 var ErrCollectionNotFound = errors.New("Collection not found")
 
+// ErrGroupNotFound is returned when a collection should be created in a group
+// that does not exist or does not belong to the user.
+var ErrGroupNotFound = errors.New("Group not found")
+
+// ErrInvalidLearnResult is returned when the reported counts cannot come from a real session.
+var ErrInvalidLearnResult = errors.New("Invalid learn result")
+
 // UserOwnsCollection reports whether the collection with the given ID belongs to the user.
 func UserOwnsCollection(collectionID, userID int) (bool, error) {
 	db, dbErr := openDb()
@@ -17,7 +24,6 @@ func UserOwnsCollection(collectionID, userID int) (bool, error) {
 		LogError(GetFile(), dbErr)
 		return false, dbErr
 	}
-	defer db.Close()
 
 	var exists bool
 	queryErr := db.QueryRow("SELECT EXISTS(SELECT 1 FROM Collection WHERE collectionID = ? AND userID = ?)", collectionID, userID).Scan(&exists)
@@ -34,7 +40,6 @@ func AddNewCollection(collectionName string, userID, groupID int) error {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
-	defer db.Close()
 
 	result, execErr := db.Exec(`
 		INSERT INTO Collection (name, userID, groupID)
@@ -56,7 +61,7 @@ func AddNewCollection(collectionName string, userID, groupID int) error {
 		return rowsErr
 	}
 	if rows == 0 {
-		return errors.New("Group not found")
+		return ErrGroupNotFound
 	}
 
 	collectionID, idErr := result.LastInsertId()
@@ -80,7 +85,6 @@ func RemoveCollection(collectionID, userID int) error {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
-	defer db.Close()
 
 	owns, ownErr := UserOwnsCollection(collectionID, userID)
 	if ownErr != nil {
@@ -130,7 +134,6 @@ func FetchCollections(userID, groupID int) ([]CollectionElement, error) {
 		LogError(GetFile(), openErr)
 		return collections, openErr
 	}
-	defer db.Close()
 
 	rows, queryErr := db.Query("SELECT collectionID, name, groupID FROM Collection WHERE userID = (?) AND groupID = (?) ORDER BY collectionID DESC", userID, groupID)
 	if queryErr != nil {
@@ -160,7 +163,6 @@ func GetCollectionLen(collectionID int) (int, error) {
 		LogError(GetFile(), dbErr)
 		return 0, dbErr
 	}
-	defer db.Close()
 
 	var len int
 	queryErr := db.QueryRow("SELECT COUNT(*) FROM Card WHERE collectionID = ?", collectionID).Scan(&len)
@@ -179,7 +181,6 @@ func GetCollectionStats(collectionID int) (CollectionStats, error) {
 		LogError(GetFile(), dbErr)
 		return CollectionStats{}, dbErr
 	}
-	defer db.Close()
 	var stats CollectionStats
 	len, lenErr := GetCollectionLen(collectionID)
 	if lenErr != nil {
@@ -199,9 +200,6 @@ func GetCollectionStats(collectionID int) (CollectionStats, error) {
 	}
 	return stats, nil
 }
-
-// ErrInvalidLearnResult is returned when the reported counts cannot come from a real session.
-var ErrInvalidLearnResult = errors.New("Invalid learn result")
 
 // ComputeScore calculates the session score (0-100, one decimal) from the raw
 // counts. len is the number of cards in the collection, taken from the database.
@@ -247,7 +245,6 @@ func UpdateCollectionStats(result LearnResult) (LearnResultResponse, error) {
 		LogError(GetFile(), dbErr)
 		return LearnResultResponse{}, dbErr
 	}
-	defer db.Close()
 
 	response := LearnResultResponse{Score: score}
 
@@ -278,7 +275,6 @@ func FetchMarkedCollections(userID int) ([]MarkedCollectionElement, error) {
 		LogError(GetFile(), openErr)
 		return collections, openErr
 	}
-	defer db.Close()
 
 	rows, queryErr := db.Query(`
 		SELECT col.collectionID, col.name, COUNT(c.cardID)

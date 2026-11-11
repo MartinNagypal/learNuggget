@@ -7,7 +7,7 @@
     let {homepage, isLoggedIn} = $props();
 
     async function logout(){
-        const res = await fetch("/api/auth/logout")
+        const res = await fetch("/api/auth/logout", { method: "POST" })
         const data = await res.json()
         if(!res.ok){
             showInfo(data.message, 1);

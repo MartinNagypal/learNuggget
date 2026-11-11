@@ -1,4 +1,6 @@
 <script>
+    import {getContext} from "svelte";
+    const showInfo = getContext('showInfo');
 
     let {CollectionID, toggleAddSingleCardActive, reloadCollectionStats} = $props();
     let Question = $state("");
@@ -6,6 +8,12 @@
     let hasError = $state(0);
 
     async function postNewSingleCard(){
+        // same check as the backend (ValidateCard)
+        if(Question.trim() === "" || Answer.trim() === ""){
+            hasError = 1;
+            showInfo("Frage und Antwort dürfen nicht leer sein", 1);
+            return;
+        }
         const data = {
             question: Question,
             answer: Answer,
@@ -22,6 +30,8 @@
 
         if(!res.ok){
             hasError = 1;
+            const errData = await res.json().catch(() => ({message: "Karte konnte nicht hinzugefügt werden"}));
+            showInfo(errData.message, 1);
             return;
         }
         reloadCollectionStats();

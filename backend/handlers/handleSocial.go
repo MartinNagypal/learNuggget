@@ -10,17 +10,18 @@ import (
 func GetUserScore(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
-	score, scoreEr := functions.GetUserAvgScore(userID)
-	if scoreEr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": scoreEr.Error()})
+	score, scoreErr := functions.GetUserAvgScore(userID)
+	if scoreErr != nil {
+		functions.LogError(functions.GetFile(), scoreErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"score": score})
@@ -29,18 +30,19 @@ func GetUserScore(c *gin.Context) {
 func GetTopUsers(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	_, sessionErr := functions.VerifySession(sessionToken)
+	_, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
 	topUsers, topUsersErr := functions.GetTopUsers()
 	if topUsersErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": topUsersErr.Error()})
+		functions.LogError(functions.GetFile(), topUsersErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"topUsers": topUsers})

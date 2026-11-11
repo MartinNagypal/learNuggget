@@ -10,8 +10,8 @@ func AuthRoutes(router *gin.Engine) {
 	router.POST("/auth/register", handlers.RegisterUser)
 	router.POST("/auth/login", handlers.LoginUser)
 	router.GET("/auth/verifySession", handlers.VerifySessionValid)
-	router.GET("/auth/logout", handlers.Logout)
+	router.POST("/auth/logout", handlers.Logout)
 	router.GET("/auth/username", handlers.FetchUsername)
-	router.GET("auth/deleteUser", handlers.DelAccount)
-	router.GET("/auth/logout/all", handlers.LogoutAllSession)
+	router.DELETE("/auth/deleteUser", handlers.DelAccount)
+	router.POST("/auth/logout/all", handlers.LogoutAllSession)
 }

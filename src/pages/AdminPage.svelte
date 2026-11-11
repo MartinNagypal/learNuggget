@@ -7,6 +7,7 @@
     let stats = $state({users: 0, collections: 0, groups: 0, cards: 0});
     let users = $state([]);
     let delUserId = $state(0);
+    let delUserTimer;
 
     async function getStats(){
         const res = await fetch("/api/admin/stats");
@@ -66,11 +67,14 @@
         if(delUserId !== user.userID){
             delUserId = user.userID;
             showInfo(`Click again to delete ${user.username}`, 1);
-            setTimeout(() => {
+            // cancel the timer of a previous click (e.g. on another user)
+            clearTimeout(delUserTimer);
+            delUserTimer = setTimeout(() => {
                 delUserId = 0;
             }, 3000);
             return;
         }
+        clearTimeout(delUserTimer);
         delUserId = 0;
         const res = await fetch(`/api/admin/user/delete?id=${user.userID}`, {
             method: 'DELETE'

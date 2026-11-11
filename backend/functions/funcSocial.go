@@ -6,7 +6,6 @@ func GetUserAvgScore(userID int) (float64, error) {
 		LogError(GetFile(), dbErr)
 		return 0, dbErr
 	}
-	defer db.Close()
 
 	var avg float64
 	queryErr := db.QueryRow(`
@@ -33,7 +32,6 @@ func GetTopUsers() ([]RankElement, error) {
 		LogError(GetFile(), dbErr)
 		return ranking, dbErr
 	}
-	defer db.Close()
 
 	rows, queryErr := db.Query(`
 		SELECT u.username,

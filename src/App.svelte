@@ -71,11 +71,15 @@
   }
   setContext('leaveLearningPage', leaveLearningPage);
 
+  // Timer of the toast currently shown. A new toast cancels it, otherwise the
+  // old timer would hide the new toast too early.
+  let infoTimer;
   function showInfo(info, error){
       infoMessage = info;
       infoError = error;
       infoVisible = 1;
-      setTimeout(() => {
+      clearTimeout(infoTimer);
+      infoTimer = setTimeout(() => {
           infoVisible = 0;
           infoMessage = "";
           infoError = 0;
@@ -113,7 +117,7 @@
   setContext('toggleConfirmAccountDeletion', toggleConfirmAccountDeletion);
 
   async function logout(){
-      const res = await fetch("/api/auth/logout")
+      const res = await fetch("/api/auth/logout", { method: "POST" })
       const data = await res.json()
       if(!res.ok){
           showInfo(data.message, 1);

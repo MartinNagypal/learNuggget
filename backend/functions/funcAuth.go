@@ -10,15 +10,26 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// ErrRootCannotBeDeleted is returned by DeleteAccount for the root user.
+var ErrRootCannotBeDeleted = errors.New("Root user can't be deleted")
+
+// ErrUserNotFound is returned when no user with the given ID exists.
+var ErrUserNotFound = errors.New("User not found")
+
+// SessionLifetimeSeconds is used for both the session row in the database and
+// the cookie's Max-Age, so the two always expire at the same time.
+const SessionLifetimeSeconds = 5 * 24 * 60 * 60 // 5 days
+
+// CheckIfUserExists ignores upper/lower case, so "Alice" and "alice" can't
+// both be registered (prevents impersonation in the ranking).
 func CheckIfUserExists(username string) (bool, error) {
 	db, openErr := openDb()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
 		return false, openErr
 	}
-	defer db.Close()
 	var exists bool
-	queryErr := db.QueryRow("SELECT EXISTS(SELECT 1 FROM UserT WHERE username = ?)", username).Scan(&exists)
+	queryErr := db.QueryRow("SELECT EXISTS(SELECT 1 FROM UserT WHERE username = ? COLLATE NOCASE)", username).Scan(&exists)
 	if queryErr != nil {
 		LogError(GetFile(), queryErr)
 		return false, queryErr
@@ -39,12 +50,12 @@ func generateSession(userId int64) (string, error) {
 		LogError(GetFile(), openErr)
 		return "", openErr
 	}
-	defer db.Close()
 
 	_, saveSessionErr := db.Exec(
-		`INSERT INTO SessionT (userID, sessionToken, expiresAt, createdAt) VALUES (?, ?, unixepoch() + 43200, unixepoch())`,
+		`INSERT INTO SessionT (userID, sessionToken, expiresAt, createdAt) VALUES (?, ?, unixepoch() + ?, unixepoch())`,
 		userId,
 		tokenHash,
+		SessionLifetimeSeconds,
 	)
 
 	if saveSessionErr != nil {
@@ -60,7 +71,6 @@ func CreateUser(username, password string) (string, error) {
 		LogError(GetFile(), openDbErr)
 		return "", openDbErr
 	}
-	defer db.Close()
 	encryptedPassword, encryptionErr := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if encryptionErr != nil {
 		LogError(GetFile(), encryptionErr)
@@ -115,7 +125,6 @@ func Login(username, password string) (string, int, error) {
 		LogError(GetFile(), openErr)
 		return "", http.StatusInternalServerError, openErr
 	}
-	defer db.Close()
 	var user UserLogin
 	queryErr := db.QueryRow("SELECT userID, username, password FROM UserT WHERE username = (?)", username).Scan(&user.id, &user.Username, &user.Password)
 	if queryErr != nil {
@@ -154,9 +163,9 @@ func failedLogin(username string) (string, int, error) {
 		return "", http.StatusTooManyRequests, lockedError(loginLockSeconds)
 	}
 	if attemptsLeft == 1 {
-		return "", http.StatusForbidden, errors.New("Wrong username or password. 1 attempt left")
+		return "", http.StatusUnauthorized, errors.New("Wrong username or password. 1 attempt left")
 	}
-	return "", http.StatusForbidden, fmt.Errorf("Wrong username or password. %d attempts left", attemptsLeft)
+	return "", http.StatusUnauthorized, fmt.Errorf("Wrong username or password. %d attempts left", attemptsLeft)
 }
 
 func lockedError(seconds int64) error {
@@ -173,7 +182,6 @@ func getLoginLock(username string) (int64, error) {
 		LogError(GetFile(), openErr)
 		return 0, openErr
 	}
-	defer db.Close()
 
 	var lockedUntil int64
 	queryErr := db.QueryRow("SELECT lockedUntil FROM LoginAttemptT WHERE username = ?", username).Scan(&lockedUntil)
@@ -198,7 +206,6 @@ func registerFailedLogin(username string) (int, error) {
 		LogError(GetFile(), openErr)
 		return 0, openErr
 	}
-	defer db.Close()
 
 	_, execErr := db.Exec(`
 		INSERT INTO LoginAttemptT (username, attempts) VALUES (?, 1)
@@ -232,7 +239,6 @@ func resetLoginAttempts(username string) error {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
-	defer db.Close()
 
 	_, execErr := db.Exec("DELETE FROM LoginAttemptT WHERE username = ?", username)
 	if execErr != nil {
@@ -242,13 +248,19 @@ func resetLoginAttempts(username string) error {
 	return nil
 }
 
-func VerifySession(sessionToken string) (int, error) {
+// VerifySession returns the user ID, the HTTP status for the handler and an
+// error (same pattern as Login). The error message is always safe for the
+// client: database errors are logged here and replaced by a generic message.
+//
+//	200: valid session
+//	401: session not found or expired
+//	500: database error
+func VerifySession(sessionToken string) (int, int, error) {
 	db, openErr := openDb()
 	if openErr != nil {
 		LogError(GetFile(), openErr)
-		return 0, openErr
+		return 0, http.StatusInternalServerError, errors.New("Internal server error")
 	}
-	defer db.Close()
 
 	tokenHash := GenerateHash(sessionToken)
 	var expiresAt int
@@ -256,21 +268,54 @@ func VerifySession(sessionToken string) (int, error) {
 	queryErr := db.QueryRow("SELECT expiresAt, userID FROM SessionT WHERE sessionToken = (?)", tokenHash).Scan(&expiresAt, &userId)
 	if queryErr != nil {
 		if queryErr == sql.ErrNoRows {
-			return 0, errors.New("Session not found")
+			return 0, http.StatusUnauthorized, errors.New("Session not found")
 		}
 		LogError(GetFile(), queryErr)
-		return 0, queryErr
+		return 0, http.StatusInternalServerError, errors.New("Internal server error")
 	}
 
 	if int64(expiresAt) <= time.Now().Unix() {
 		_, deleteErr := db.Exec("DELETE FROM SessionT WHERE sessionToken = ?", tokenHash)
 		if deleteErr != nil {
 			LogError(GetFile(), deleteErr)
-			return 0, deleteErr
+			return 0, http.StatusInternalServerError, errors.New("Internal server error")
 		}
-		return 0, errors.New("Session Expired")
+		return 0, http.StatusUnauthorized, errors.New("Session Expired")
 	}
-	return userId, nil
+	return userId, http.StatusOK, nil
+}
+
+// UserExists reports whether a user with this ID exists.
+func UserExists(userID int) (bool, error) {
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return false, openErr
+	}
+
+	var exists bool
+	queryErr := db.QueryRow("SELECT EXISTS(SELECT 1 FROM UserT WHERE userID = ?)", userID).Scan(&exists)
+	if queryErr != nil {
+		LogError(GetFile(), queryErr)
+		return false, queryErr
+	}
+	return exists, nil
+}
+
+// DeleteExpiredSessions removes every session whose expiry time has passed.
+func DeleteExpiredSessions() error {
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return openErr
+	}
+
+	_, execErr := db.Exec("DELETE FROM SessionT WHERE expiresAt <= unixepoch()")
+	if execErr != nil {
+		LogError(GetFile(), execErr)
+		return execErr
+	}
+	return nil
 }
 
 func FuncLogout(sessionToken string) error {
@@ -279,7 +324,6 @@ func FuncLogout(sessionToken string) error {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
-	defer db.Close()
 
 	// In der DB steht nur der Hash, nicht der Token selbst
 	tokenHash := GenerateHash(sessionToken)
@@ -297,7 +341,6 @@ func GetUsername(userID int) (string, error) {
 		LogError(GetFile(), openErr)
 		return "", openErr
 	}
-	defer db.Close()
 
 	var username string
 	scanErr := db.QueryRow("SELECT username FROM UserT WHERE userID = ?", userID).Scan(&username)
@@ -309,12 +352,20 @@ func GetUsername(userID int) (string, error) {
 }
 
 func DeleteAccount(userID int) error {
+	exists, existsErr := UserExists(userID)
+	if existsErr != nil {
+		return existsErr
+	}
+	if !exists {
+		return ErrUserNotFound
+	}
+
 	root, rootErr := IsRoot(userID)
 	if rootErr != nil {
 		return rootErr
 	}
 	if root {
-		return errors.New("Root user can't be deleted")
+		return ErrRootCannotBeDeleted
 	}
 
 	db, openErr := openDb()
@@ -322,7 +373,6 @@ func DeleteAccount(userID int) error {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
-	defer db.Close()
 
 	tx, txErr := db.Begin()
 	if txErr != nil {
@@ -364,7 +414,6 @@ func LogoutAllSessions(userID int) error {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
-	defer db.Close()
 
 	_, execErr := db.Exec("DELETE FROM SessionT WHERE userID = ?", userID)
 	if execErr != nil {

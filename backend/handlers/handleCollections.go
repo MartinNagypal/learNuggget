@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,10 +12,10 @@ import (
 // requireCollectionOwner checks that the collection belongs to the user. If it
 // does not (or the check fails), it writes the error response and returns false.
 func requireCollectionOwner(c *gin.Context, collectionID, userID int) bool {
-	owns, err := functions.UserOwnsCollection(collectionID, userID)
-	if err != nil {
-		functions.LogError(functions.GetFile(), err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	owns, ownErr := functions.UserOwnsCollection(collectionID, userID)
+	if ownErr != nil {
+		functions.LogError(functions.GetFile(), ownErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return false
 	}
 	if !owns {
@@ -29,145 +28,142 @@ func requireCollectionOwner(c *gin.Context, collectionID, userID int) bool {
 func GetCollections(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
 	groupID, convErr := strconv.Atoi(c.Query("gid"))
 	if convErr != nil {
-		functions.LogError(functions.GetFile(), convErr)
-		c.JSON(500, gin.H{"message": convErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "No group id given"})
 		return
 	}
 
-	collections, err := functions.FetchCollections(userID, groupID)
-	if err != nil {
-		functions.LogError(functions.GetFile(), err)
-		c.JSON(500, gin.H{"message": err.Error()})
+	collections, fetchErr := functions.FetchCollections(userID, groupID)
+	if fetchErr != nil {
+		functions.LogError(functions.GetFile(), fetchErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
-	c.JSON(200, collections)
+	c.JSON(http.StatusOK, collections)
 }
 
 func NewCollection(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
-	name := strings.TrimSpace(c.Query("name"))
 	groupID, convErr := strconv.Atoi(c.Query("gid"))
 	if convErr != nil {
-		functions.LogError(functions.GetFile(), convErr)
-		c.JSON(500, gin.H{"message": convErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "No group id given"})
 		return
 	}
-	if name == "" {
-		functions.LogError(functions.GetFile(), errors.New("Name is empty"))
-		c.JSON(400, gin.H{"message": "parameter name is missing"})
+	name, nameErr := functions.NormalizeName(c.Query("name"))
+	if nameErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": nameErr.Error()})
 		return
 	}
 
-	dbErr := functions.AddNewCollection(name, userID, groupID)
-	if dbErr != nil {
-		functions.LogError(functions.GetFile(), dbErr)
-		c.JSON(500, gin.H{"message": dbErr})
+	addErr := functions.AddNewCollection(name, userID, groupID)
+	if errors.Is(addErr, functions.ErrGroupNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"message": addErr.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"message": "Collection created succesfully"})
+	if addErr != nil {
+		functions.LogError(functions.GetFile(), addErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Collection created succesfully"})
 }
 
 func RemoveColellectionHandle(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
 	collectionID, convErr := strconv.Atoi(c.Query("id"))
 	if convErr != nil {
-		functions.LogError(functions.GetFile(), convErr)
-		c.JSON(500, convErr.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "No collection id given"})
 		return
 	}
 
-	dbErr := functions.RemoveCollection(collectionID, userID)
-	if errors.Is(dbErr, functions.ErrCollectionNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"message": dbErr.Error()})
+	removeErr := functions.RemoveCollection(collectionID, userID)
+	if errors.Is(removeErr, functions.ErrCollectionNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"message": removeErr.Error()})
 		return
 	}
-	if dbErr != nil {
-		functions.LogError(functions.GetFile(), dbErr)
-		c.JSON(500, gin.H{"message": dbErr})
+	if removeErr != nil {
+		functions.LogError(functions.GetFile(), removeErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
-	c.JSON(200, gin.H{"message": "Collection removed succesfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Collection removed succesfully"})
 }
 
 func GetCollectionLength(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
 	collectionID, convErr := strconv.Atoi(c.Query("id"))
 	if convErr != nil {
-		functions.LogError("handleCollections.go", convErr)
-		c.JSON(500, gin.H{"message": convErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "No collection id given"})
 		return
 	}
 	if !requireCollectionOwner(c, collectionID, userID) {
 		return
 	}
 
-	len, err := functions.GetCollectionLen(collectionID)
-
-	if err != nil {
-		functions.LogError("handleCollection.go", err)
-		c.JSON(500, gin.H{"message": err.Error()})
+	length, lenErr := functions.GetCollectionLen(collectionID)
+	if lenErr != nil {
+		functions.LogError(functions.GetFile(), lenErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
-	c.JSON(200, gin.H{"len": len})
+	c.JSON(http.StatusOK, gin.H{"len": length})
 }
 
 func GetCollectionStats(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
 	collectionID, convErr := strconv.Atoi(c.Query("id"))
 	if convErr != nil {
-		functions.LogError("handleCollections.go", convErr)
-		c.JSON(500, gin.H{"message": convErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "No collection id given"})
 		return
 	}
 	if !requireCollectionOwner(c, collectionID, userID) {
@@ -175,28 +171,28 @@ func GetCollectionStats(c *gin.Context) {
 	}
 	stats, statsErr := functions.GetCollectionStats(collectionID)
 	if statsErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": statsErr.Error()})
+		functions.LogError(functions.GetFile(), statsErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
-	c.JSON(200, stats)
+	c.JSON(http.StatusOK, stats)
 }
 
 func UpdateCollectionProgress(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 	var result functions.LearnResult
 	bindErr := c.ShouldBindJSON(&result)
 	if bindErr != nil {
-		functions.LogError(functions.GetFile(), bindErr)
-		c.JSON(http.StatusBadRequest, gin.H{"message": bindErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
 	if !requireCollectionOwner(c, result.CollectionID, userID) {
@@ -209,7 +205,7 @@ func UpdateCollectionProgress(c *gin.Context) {
 	}
 	if updateErr != nil {
 		functions.LogError(functions.GetFile(), updateErr)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": updateErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, response)
@@ -218,19 +214,19 @@ func UpdateCollectionProgress(c *gin.Context) {
 func GetMarkedCollections(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
 	collections, fetchErr := functions.FetchMarkedCollections(userID)
 	if fetchErr != nil {
 		functions.LogError(functions.GetFile(), fetchErr)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": fetchErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, collections)

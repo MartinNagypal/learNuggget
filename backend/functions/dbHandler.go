@@ -2,23 +2,44 @@ package functions
 
 import (
 	"database/sql"
-	"log"
+	"errors"
 
 	_ "modernc.org/sqlite"
 )
 
 // busy_timeout: when another request holds the write lock, wait up to 5s
 // instead of failing immediately with SQLITE_BUSY ("database is locked").
-const dbDSN = "learNuggget.db?_pragma=busy_timeout(5000)"
+// journal_mode(WAL): readers no longer block the writer and vice versa.
+const dbDSN = "learNuggget.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)"
 
-func openDb() (*sql.DB, error) {
-	db, dbErr := sql.Open("sqlite", dbDSN)
-	if dbErr != nil {
-		log.Fatal(dbErr)
-		return nil, dbErr
-	} else {
-		return db, nil
+// database is opened once at startup (InitDb) and shared by all functions.
+// sql.DB is a connection pool and safe for concurrent use, so it must NOT be
+// closed after each query.
+var database *sql.DB
+
+// InitDb opens the database once. Call it in main before anything else.
+func InitDb() error {
+	db, openErr := sql.Open("sqlite", dbDSN)
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return openErr
 	}
+	// sql.Open does not connect yet; Ping checks that the file can really be opened.
+	if pingErr := db.Ping(); pingErr != nil {
+		LogError(GetFile(), pingErr)
+		db.Close()
+		return pingErr
+	}
+	database = db
+	return nil
+}
+
+// openDb returns the shared database. Callers must not close it.
+func openDb() (*sql.DB, error) {
+	if database == nil {
+		return nil, errors.New("database not initialized, call InitDb first")
+	}
+	return database, nil
 }
 
 func InitTables() error {
@@ -27,7 +48,6 @@ func InitTables() error {
 		LogError(GetFile(), openErr)
 		return openErr
 	}
-	defer db.Close()
 	_, errCollection := db.Exec(`
 		CREATE TABLE IF NOT EXISTS Collection (
 		    collectionID INTEGER PRIMARY KEY,

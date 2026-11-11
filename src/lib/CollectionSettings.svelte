@@ -1,4 +1,6 @@
 <script>
+    import {getContext} from "svelte";
+    const showInfo = getContext('showInfo');
 
     let {id, toggleShowCollectionSettings, reloadCollectionLen} = $props();
     let text = $state("")
@@ -14,17 +16,21 @@
                 bulk: text
             })
         });
-        if(res.ok){
-            toggleShowCollectionSettings();
-            reloadCollectionLen();
+        const data = await res.json().catch(() => ({message: "Import failed"}));
+        if(!res.ok){
+            showInfo(data.message, 1);
+            return;
         }
+        showInfo(data.message, 0);
+        toggleShowCollectionSettings();
+        reloadCollectionLen();
     }
 
 </script>
 
 <div class="collectionSettings">
     <div class="collectionSettingsHeader">Bulk Hinzufügen</div>
-    <textarea bind:value={text} placeholder="format: question@@answer;;"></textarea>
+    <textarea bind:value={text} placeholder={"Format: Frage@@Antwort;;\n;; oder @@ im Text? Mit \\ davor: \\;; bzw. \\@@"}></textarea>
     <button class="successButton" onclick={addBulkCards}>Hinzufügen</button>
 </div>
 

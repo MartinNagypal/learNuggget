@@ -1,24 +1,101 @@
 package functions
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 // ErrCardNotFound is returned when a card does not exist or does not belong to the requesting user.
 var ErrCardNotFound = errors.New("Card not found")
 
+// CardInput is a question/answer pair to be inserted.
+type CardInput struct {
+	Question string
+	Answer   string
+}
+
+// Placeholders for escaped separators while splitting. \x00 can't be typed
+// into the textarea, so it never collides with real card text.
+const (
+	escapedCardSep = "\x00CARDSEP\x00"
+	escapedQASep   = "\x00QASEP\x00"
+)
+
+// ParseBulkCards splits the bulk text "question@@answer;;question@@answer;;..."
+// into cards. To use the separators inside a card, escape them with a
+// backslash: \;; becomes ";;" and \@@ becomes "@@". Question and answer are
+// trimmed; parts without "@@" are skipped. The caller validates each card.
+func ParseBulkCards(bulk string) []CardInput {
+	text := strings.ReplaceAll(bulk, `\;;`, escapedCardSep)
+	text = strings.ReplaceAll(text, `\@@`, escapedQASep)
+	restore := strings.NewReplacer(escapedCardSep, ";;", escapedQASep, "@@")
+
+	cards := []CardInput{}
+	for _, element := range strings.Split(text, ";;") {
+		sepElement := strings.SplitN(element, "@@", 2)
+		if len(sepElement) != 2 {
+			continue
+		}
+		cards = append(cards, CardInput{
+			Question: strings.TrimSpace(restore.Replace(sepElement[0])),
+			Answer:   strings.TrimSpace(restore.Replace(sepElement[1])),
+		})
+	}
+	return cards
+}
+
 func AddNewCard(question, answer string, collectionID int) error {
+	return AddCards(collectionID, []CardInput{{Question: question, Answer: answer}})
+}
+
+// AddCards inserts the cards using one connection and one transaction: either
+// all cards are added or none (no half-finished imports). The caller checks
+// each card with ValidateCard first. Returns ErrTooManyCards if the collection
+// would exceed MaxCardsPerCollection.
+func AddCards(collectionID int, cards []CardInput) error {
 	db, dbErr := openDb()
-	if dbErr != nil || db == nil {
+	if dbErr != nil {
 		LogError(GetFile(), dbErr)
 		return dbErr
 	}
-	defer db.Close()
-	_, execErr := db.Exec("INSERT INTO Card (question, answer, collectionID) VALUES (?,?,?)", question, answer, collectionID)
-	if execErr != nil {
-		LogError(GetFile(), execErr)
-		return execErr
-	} else {
-		return nil
+
+	tx, txErr := db.Begin()
+	if txErr != nil {
+		LogError(GetFile(), txErr)
+		return txErr
 	}
+	defer tx.Rollback()
+
+	stmt, prepErr := tx.Prepare("INSERT INTO Card (question, answer, collectionID) VALUES (?,?,?)")
+	if prepErr != nil {
+		LogError(GetFile(), prepErr)
+		return prepErr
+	}
+	defer stmt.Close()
+
+	for _, card := range cards {
+		if _, execErr := stmt.Exec(card.Question, card.Answer, collectionID); execErr != nil {
+			LogError(GetFile(), execErr)
+			return execErr
+		}
+	}
+
+	// Counted after the inserts (inside the transaction) so the write lock is
+	// already held and concurrent imports cannot slip past the limit together.
+	var total int
+	if countErr := tx.QueryRow("SELECT COUNT(*) FROM Card WHERE collectionID = ?", collectionID).Scan(&total); countErr != nil {
+		LogError(GetFile(), countErr)
+		return countErr
+	}
+	if total > MaxCardsPerCollection {
+		return ErrTooManyCards
+	}
+
+	if commitErr := tx.Commit(); commitErr != nil {
+		LogError(GetFile(), commitErr)
+		return commitErr
+	}
+	return nil
 }
 
 func FetchCards(collectionID int) ([]Card, error) {
@@ -27,7 +104,6 @@ func FetchCards(collectionID int) ([]Card, error) {
 		LogError(GetFile(), dbErr)
 		return nil, dbErr
 	}
-	defer db.Close()
 
 	rows, queryErr := db.Query("SELECT question, answer, cardID, collectionID, marked FROM Card WHERE collectionID = ?", collectionID)
 	if queryErr != nil {
@@ -55,7 +131,6 @@ func DeleteCard(cardID, userID int) error {
 		LogError(GetFile(), dbErr)
 		return dbErr
 	}
-	defer db.Close()
 
 	result, execErr := db.Exec(`
 		DELETE FROM Card
@@ -84,7 +159,6 @@ func MarkCard(cardID int, marked bool, userID int) error {
 		LogError(GetFile(), dbErr)
 		return dbErr
 	}
-	defer db.Close()
 
 	result, execErr := db.Exec(`
 		UPDATE Card SET marked = ?
@@ -102,7 +176,7 @@ func MarkCard(cardID int, marked bool, userID int) error {
 		return affectedErr
 	}
 	if affected == 0 {
-		return errors.New("Card not found")
+		return ErrCardNotFound
 	}
 	return nil
 }
@@ -113,7 +187,6 @@ func FetchMarkedCards(userID int) ([]Card, error) {
 		LogError(GetFile(), dbErr)
 		return nil, dbErr
 	}
-	defer db.Close()
 
 	rows, queryErr := db.Query(`
 		SELECT c.question, c.answer, c.cardID, c.collectionID, c.marked

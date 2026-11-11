@@ -13,22 +13,28 @@
     let newCollection = $state(0);
 
     let delGroup = $state(0);
+    let delGroupTimer;
 
     async function deleteGroup(){
         if(delGroup === 0){
             delGroup = 1;
             showInfo("Click again to approve", 1);
-            setTimeout(() => {
+            clearTimeout(delGroupTimer);
+            delGroupTimer = setTimeout(() => {
                 delGroup = 0;
             }, 3000);
             return;
         }
+        // reset, so a failed delete needs a new confirmation
+        clearTimeout(delGroupTimer);
+        delGroup = 0;
         const res = await fetch (`/api/group/delete?gid=${id}`, {
             method: 'DELETE'
         })
         const data = await res.json();
         if (!res.ok){
             showInfo(data.message, 1);
+            return;
         }
         showInfo(data.message, 0);
         await reloadGroups();

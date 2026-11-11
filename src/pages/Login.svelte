@@ -24,7 +24,9 @@
         passwordMatch = 0;
         usernameValid = 0;
 
-        if(username.length < 5){
+        // Same rules as the server (NormalizeUsername in backend/functions/validation.go)
+        username = username.trim();
+        if(!/^[A-Za-z0-9_.-]{5,32}$/.test(username)){
             usernameValid = -1
         }
 
@@ -133,7 +135,7 @@
         <input type="text" placeholder="Benutzername" class="mainInputStyle" bind:value={username}>
         <div class="passReq">
             {#if usernameValid === -1}
-                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>Mindestens 5 Character</span>
+                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>5 - 32 Zeichen: Buchstaben, Zahlen, _ . -</span>
             {/if}
         </div>
         <span class="loginHeader">Passwort</span>

@@ -26,4 +26,6 @@ dist-ssr
 
 learNuggget.db
 *.db
+*.db-wal
+*.db-shm
 backend/backend

@@ -14,7 +14,7 @@
     }
 
     async function logoutFromAllSession(){
-        const res = await fetch ("/api/auth/logout/all");
+        const res = await fetch("/api/auth/logout/all", { method: "POST" });
         const data = await res.json();
         if(!res.ok){
             showInfo(data.message, 1);

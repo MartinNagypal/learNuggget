@@ -10,11 +10,20 @@ import (
 )
 
 func main() {
+	initDbErr := functions.InitDb()
+	if initDbErr != nil {
+		functions.LogError(functions.GetFile(), initDbErr)
+		return
+	}
+
 	initTablesErr := functions.InitTables()
 	if initTablesErr != nil {
 		functions.LogError(functions.GetFile(), initTablesErr)
 		return
 	}
+
+	functions.StartSessionCleanup()
+
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{

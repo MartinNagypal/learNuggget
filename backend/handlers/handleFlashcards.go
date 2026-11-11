@@ -3,9 +3,9 @@ package handlers
 import (
 	"backend/functions"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,175 +13,193 @@ import (
 func AddNewCard(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
 	var newCard functions.Card
-	err := c.ShouldBindJSON(&newCard)
-	if err != nil {
-		functions.LogError(functions.GetFile(), err)
-		c.JSON(500, gin.H{"message": err.Error()})
+	bindErr := c.ShouldBindJSON(&newCard)
+	if bindErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+	validErr := functions.ValidateCard(newCard.Question, newCard.Answer)
+	if validErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": validErr.Error()})
 		return
 	}
 	if !requireCollectionOwner(c, newCard.CollectionID, userID) {
 		return
 	}
 
-	dbErr := functions.AddNewCard(newCard.Question, newCard.Answer, newCard.CollectionID)
-	if dbErr != nil {
-		functions.LogError(functions.GetFile(), dbErr)
-		c.JSON(500, gin.H{"message": dbErr.Error()})
+	addErr := functions.AddNewCard(newCard.Question, newCard.Answer, newCard.CollectionID)
+	if errors.Is(addErr, functions.ErrTooManyCards) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": addErr.Error()})
+		return
+	}
+	if addErr != nil {
+		functions.LogError(functions.GetFile(), addErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Card added succesfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Card added succesfully"})
 }
 
 func GetCards(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
-	id, convErr := strconv.Atoi(c.Query("collectionID"))
+	collectionID, convErr := strconv.Atoi(c.Query("collectionID"))
 	if convErr != nil {
-		functions.LogError(functions.GetFile(), convErr)
-		c.JSON(400, gin.H{"message": "No collectionID given"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "No collection id given"})
 		return
 	}
-	if !requireCollectionOwner(c, id, userID) {
+	if !requireCollectionOwner(c, collectionID, userID) {
 		return
 	}
 
-	cards, fetchErr := functions.FetchCards(id)
+	cards, fetchErr := functions.FetchCards(collectionID)
 	if fetchErr != nil {
 		functions.LogError(functions.GetFile(), fetchErr)
-		c.JSON(500, gin.H{"message": fetchErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 
-	c.JSON(200, cards)
+	c.JSON(http.StatusOK, cards)
 }
 
 func AddBulkCards(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
-	id, convErr := strconv.Atoi(c.Query("id"))
+	collectionID, convErr := strconv.Atoi(c.Query("id"))
 	if convErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "No collection id given"})
-		return
-	}
-	if !requireCollectionOwner(c, id, userID) {
 		return
 	}
 	var body struct {
 		Bulk string `json:"bulk"`
 	}
-
-	if err := c.ShouldBindJSON(&body); err != nil {
-		functions.LogError(functions.GetFile(), err)
-		c.JSON(500, gin.H{"message": err.Error()})
+	bindErr := c.ShouldBindJSON(&body)
+	if bindErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+	if !requireCollectionOwner(c, collectionID, userID) {
 		return
 	}
 
-	failed := false
-	bulkCardsCol := strings.Split(body.Bulk, ";;")
-	for _, element := range bulkCardsCol {
-		if element == "" {
-			continue
-		}
-		sepElement := strings.SplitN(element, "@@", 2)
-		if len(sepElement) != 2 {
-			continue
-		}
-		addErr := functions.AddNewCard(sepElement[0], sepElement[1], id)
-		if addErr != nil {
-			functions.LogError(functions.GetFile(), addErr)
-			failed = true
-		}
-	}
-
-	if failed {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "One or more cards could not be added..."})
+	// Format: "question@@answer;;question@@answer;;..." – \;; and \@@ for literal separators
+	cards := functions.ParseBulkCards(body.Bulk)
+	if len(cards) > functions.MaxCardsPerImport {
+		c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("At most %d cards per import", functions.MaxCardsPerImport)})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Cards added succesfully"})
+	for _, card := range cards {
+		validErr := functions.ValidateCard(card.Question, card.Answer)
+		if validErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": validErr.Error()})
+			return
+		}
+	}
+	if len(cards) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "No valid cards found (format: question@@answer;;)"})
+		return
+	}
+
+	// One transaction: either all cards are imported or none
+	addErr := functions.AddCards(collectionID, cards)
+	if errors.Is(addErr, functions.ErrTooManyCards) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": addErr.Error()})
+		return
+	}
+	if addErr != nil {
+		functions.LogError(functions.GetFile(), addErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("%d cards added succesfully", len(cards))})
 }
 
 func DeleteCard(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
-	id, convErr := strconv.Atoi(c.Query("id"))
+	cardID, convErr := strconv.Atoi(c.Query("id"))
 	if convErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "No card id given"})
 		return
 	}
-	err := functions.DeleteCard(id, userID)
-	if errors.Is(err, functions.ErrCardNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+	delErr := functions.DeleteCard(cardID, userID)
+	if errors.Is(delErr, functions.ErrCardNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"message": delErr.Error()})
 		return
 	}
-	if err != nil {
-		functions.LogError(functions.GetFile(), err)
-		c.JSON(500, gin.H{"message": err.Error()})
+	if delErr != nil {
+		functions.LogError(functions.GetFile(), delErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
-	c.JSON(200, gin.H{"message": "Deleted Succesfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Deleted Succesfully"})
 }
 
 func MarkCard(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
 	var req functions.MarkCardRequest
 	bindErr := c.ShouldBindJSON(&req)
 	if bindErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": bindErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
 
 	markErr := functions.MarkCard(req.CardID, req.Marked, userID)
+	if errors.Is(markErr, functions.ErrCardNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"message": markErr.Error()})
+		return
+	}
 	if markErr != nil {
 		functions.LogError(functions.GetFile(), markErr)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": markErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Card updated"})
@@ -190,19 +208,19 @@ func MarkCard(c *gin.Context) {
 func GetMarkedCards(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
 	cards, fetchErr := functions.FetchMarkedCards(userID)
 	if fetchErr != nil {
 		functions.LogError(functions.GetFile(), fetchErr)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": fetchErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, cards)

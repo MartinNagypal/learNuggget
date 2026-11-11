@@ -21,15 +21,20 @@
     }
 
     let delCount = $state(0)
+    let delTimer;
     async function removeCollection() {
         if(delCount === 0){
             delCount ++;
             showInfo("Click again to approve", 1);
-            setTimeout(() => {
+            clearTimeout(delTimer);
+            delTimer = setTimeout(() => {
                 delCount = 0;
             }, 3000);
             return;
         }
+        // reset, so a failed delete needs a new confirmation
+        clearTimeout(delTimer);
+        delCount = 0;
         if(!name?.trim()){
             return;
         }

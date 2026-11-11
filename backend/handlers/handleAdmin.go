@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/functions"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -11,17 +12,18 @@ import (
 func GetAdminStats(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 	root, rootErr := functions.IsRoot(userID)
 	if rootErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": rootErr.Error()})
+		functions.LogError(functions.GetFile(), rootErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	if !root {
@@ -32,7 +34,7 @@ func GetAdminStats(c *gin.Context) {
 	stats, statsErr := functions.GetAdminStats()
 	if statsErr != nil {
 		functions.LogError(functions.GetFile(), statsErr)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": statsErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, stats)
@@ -41,17 +43,18 @@ func GetAdminStats(c *gin.Context) {
 func GetAllUsers(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 	root, rootErr := functions.IsRoot(userID)
 	if rootErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": rootErr.Error()})
+		functions.LogError(functions.GetFile(), rootErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	if !root {
@@ -62,7 +65,7 @@ func GetAllUsers(c *gin.Context) {
 	users, usersErr := functions.FetchAllUsers()
 	if usersErr != nil {
 		functions.LogError(functions.GetFile(), usersErr)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": usersErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, users)
@@ -71,17 +74,18 @@ func GetAllUsers(c *gin.Context) {
 func AdminDeleteUser(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 	root, rootErr := functions.IsRoot(userID)
 	if rootErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": rootErr.Error()})
+		functions.LogError(functions.GetFile(), rootErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	if !root {
@@ -96,9 +100,17 @@ func AdminDeleteUser(c *gin.Context) {
 	}
 
 	delErr := functions.DeleteAccount(targetID)
+	if errors.Is(delErr, functions.ErrRootCannotBeDeleted) {
+		c.JSON(http.StatusForbidden, gin.H{"message": delErr.Error()})
+		return
+	}
+	if errors.Is(delErr, functions.ErrUserNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"message": delErr.Error()})
+		return
+	}
 	if delErr != nil {
 		functions.LogError(functions.GetFile(), delErr)
-		c.JSON(http.StatusForbidden, gin.H{"message": delErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
@@ -107,17 +119,18 @@ func AdminDeleteUser(c *gin.Context) {
 func AdminLogoutUser(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not logged in"})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionStatus, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
-		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		c.JSON(sessionStatus, gin.H{"message": sessionErr.Error()})
 		return
 	}
 	root, rootErr := functions.IsRoot(userID)
 	if rootErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": rootErr.Error()})
+		functions.LogError(functions.GetFile(), rootErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	if !root {
@@ -131,9 +144,21 @@ func AdminLogoutUser(c *gin.Context) {
 		return
 	}
 
+	exists, existsErr := functions.UserExists(targetID)
+	if existsErr != nil {
+		functions.LogError(functions.GetFile(), existsErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
+		return
+	}
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"message": functions.ErrUserNotFound.Error()})
+		return
+	}
+
 	targetRoot, targetRootErr := functions.IsRoot(targetID)
 	if targetRootErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": targetRootErr.Error()})
+		functions.LogError(functions.GetFile(), targetRootErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	if targetRoot {
@@ -144,7 +169,7 @@ func AdminLogoutUser(c *gin.Context) {
 	logoutErr := functions.LogoutAllSessions(targetID)
 	if logoutErr != nil {
 		functions.LogError(functions.GetFile(), logoutErr)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": logoutErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "User logged out"})

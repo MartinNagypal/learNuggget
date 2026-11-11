@@ -12,6 +12,7 @@
     let loaded = $state(0);
     let site = $state(0);
     let delCount = $state(0)
+    let delTimer;
     let cards = $state([]);
     let finished = $state(0);
     let known = $state(0);
@@ -113,6 +114,10 @@
         }
         else if(gameMode === 1){
             cards.splice(currentCard, 1);
+            // after removing the last card, currentCard would point past the end
+            if (cards.length > 0) {
+                currentCard = Math.min(currentCard, cards.length - 1);
+            }
             site = 0;
             known++;
             progress++;
@@ -130,6 +135,9 @@
         }
         else if(gameMode === 1){
             cards.splice(currentCard, 1);
+            if (cards.length > 0) {
+                currentCard = Math.min(currentCard, cards.length - 1);
+            }
             site = 0;
             wrong++;
             progress++;
@@ -168,15 +176,37 @@
         if(gameMode === 2){
             if(delCount === 0){
                 delCount++
+                showInfo("Click again to delete this card", 1);
+                clearTimeout(delTimer);
+                delTimer = setTimeout(() => {
+                    delCount = 0;
+                }, 3000);
                 return
             }
+            clearTimeout(delTimer);
             delCount = 0;
             const res = await fetch(`/api/card/delete?id=${cards[currentCard].cardId}`, {
                 method: 'DELETE'
             })
             if(res.ok){
-                await fetchCards();
-                nextCard();
+                // Remove the card locally instead of fetchCards(): keeps the current
+                // (shuffled) order, and the following card moves up to currentCard.
+                const deleted = cards[currentCard];
+                cards.splice(currentCard, 1);
+                for (const card of cards) {
+                    if (card.originalIndex > deleted.originalIndex) {
+                        card.originalIndex--;
+                    }
+                }
+                len = cards.length;
+                if (currentCard >= cards.length) {
+                    currentCard = 0;
+                }
+                site = 0;
+            }
+            else {
+                const data = await res.json();
+                showInfo(data.message, 1);
             }
         }
         else{
