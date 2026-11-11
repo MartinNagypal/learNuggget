@@ -2,6 +2,9 @@ package functions
 
 import "errors"
 
+// ErrCardNotFound is returned when a card does not exist or does not belong to the requesting user.
+var ErrCardNotFound = errors.New("Card not found")
+
 func AddNewCard(question, answer string, collectionID int) error {
 	db, dbErr := openDb()
 	if dbErr != nil || db == nil {
@@ -46,21 +49,32 @@ func FetchCards(collectionID int) ([]Card, error) {
 	return cards, nil
 }
 
-func DeleteCard(cardId int) error {
+func DeleteCard(cardID, userID int) error {
 	db, dbErr := openDb()
-	defer db.Close()
-
 	if dbErr != nil {
 		LogError(GetFile(), dbErr)
+		return dbErr
 	}
+	defer db.Close()
 
-	_, execErr := db.Exec("DELETE FROM card WHERE cardID = ?", cardId)
-
+	result, execErr := db.Exec(`
+		DELETE FROM Card
+		WHERE cardID = ?
+		  AND collectionID IN (SELECT collectionID FROM Collection WHERE userID = ?)`,
+		cardID, userID)
 	if execErr != nil {
 		LogError(GetFile(), execErr)
 		return execErr
 	}
 
+	affected, affectedErr := result.RowsAffected()
+	if affectedErr != nil {
+		LogError(GetFile(), affectedErr)
+		return affectedErr
+	}
+	if affected == 0 {
+		return ErrCardNotFound
+	}
 	return nil
 }
 

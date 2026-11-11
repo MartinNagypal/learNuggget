@@ -2,6 +2,29 @@ package functions
 
 import "errors"
 
+// ErrCollectionNotFound is returned when a collection does not exist or does
+// not belong to the requesting user. Both cases are reported the same way so
+// that other users' collection IDs cannot be probed.
+var ErrCollectionNotFound = errors.New("Collection not found")
+
+// UserOwnsCollection reports whether the collection with the given ID belongs to the user.
+func UserOwnsCollection(collectionID, userID int) (bool, error) {
+	db, dbErr := openDb()
+	if dbErr != nil {
+		LogError(GetFile(), dbErr)
+		return false, dbErr
+	}
+	defer db.Close()
+
+	var exists bool
+	queryErr := db.QueryRow("SELECT EXISTS(SELECT 1 FROM Collection WHERE collectionID = ? AND userID = ?)", collectionID, userID).Scan(&exists)
+	if queryErr != nil {
+		LogError(GetFile(), queryErr)
+		return false, queryErr
+	}
+	return exists, nil
+}
+
 func AddNewCollection(collectionName string, userID, groupID int) error {
 	db, openErr := openDb()
 	if openErr != nil {
@@ -55,6 +78,15 @@ func RemoveCollection(collectionID, userID int) error {
 		return openErr
 	}
 	defer db.Close()
+
+	owns, ownErr := UserOwnsCollection(collectionID, userID)
+	if ownErr != nil {
+		return ownErr
+	}
+	if !owns {
+		return ErrCollectionNotFound
+	}
+
 	_, cardErr := db.Exec("DELETE FROM Card WHERE collectionID = (?)", collectionID)
 	if cardErr != nil {
 		LogError(GetFile(), cardErr)

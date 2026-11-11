@@ -10,6 +10,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// requireCollectionOwner checks that the collection belongs to the user. If it
+// does not (or the check fails), it writes the error response and returns false.
+func requireCollectionOwner(c *gin.Context, collectionID, userID int) bool {
+	owns, err := functions.UserOwnsCollection(collectionID, userID)
+	if err != nil {
+		functions.LogError(functions.GetFile(), err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return false
+	}
+	if !owns {
+		c.JSON(http.StatusNotFound, gin.H{"message": functions.ErrCollectionNotFound.Error()})
+		return false
+	}
+	return true
+}
+
 func GetCollections(c *gin.Context) {
 	sessionToken, cookieErr := c.Cookie("sessionToken")
 	if cookieErr != nil {
@@ -92,6 +108,10 @@ func RemoveColellectionHandle(c *gin.Context) {
 	}
 
 	dbErr := functions.RemoveCollection(collectionID, userID)
+	if errors.Is(dbErr, functions.ErrCollectionNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"message": dbErr.Error()})
+		return
+	}
 	if dbErr != nil {
 		functions.LogError(functions.GetFile(), dbErr)
 		c.JSON(500, gin.H{"message": dbErr})
@@ -106,7 +126,7 @@ func GetCollectionLength(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
 		return
 	}
-	_, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
 		return
@@ -116,6 +136,9 @@ func GetCollectionLength(c *gin.Context) {
 	if convErr != nil {
 		functions.LogError("handleCollections.go", convErr)
 		c.JSON(500, gin.H{"message": convErr.Error()})
+		return
+	}
+	if !requireCollectionOwner(c, collectionID, userID) {
 		return
 	}
 
@@ -135,7 +158,7 @@ func GetCollectionStats(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
 		return
 	}
-	_, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
 		return
@@ -145,6 +168,9 @@ func GetCollectionStats(c *gin.Context) {
 	if convErr != nil {
 		functions.LogError("handleCollections.go", convErr)
 		c.JSON(500, gin.H{"message": convErr.Error()})
+		return
+	}
+	if !requireCollectionOwner(c, collectionID, userID) {
 		return
 	}
 	stats, statsErr := functions.GetCollectionStats(collectionID)
@@ -161,7 +187,7 @@ func UpdateCollectionProgress(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
 		return
 	}
-	_, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
 		return
@@ -171,6 +197,9 @@ func UpdateCollectionProgress(c *gin.Context) {
 	if bindErr != nil {
 		functions.LogError(functions.GetFile(), bindErr)
 		c.JSON(500, gin.H{"message": bindErr.Error()})
+		return
+	}
+	if !requireCollectionOwner(c, updatedStats.CollectionID, userID) {
 		return
 	}
 	updateErr := functions.UpdateCollectionStats(updatedStats)

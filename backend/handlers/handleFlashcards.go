@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/functions"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,7 +16,7 @@ func AddNewCard(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
 		return
 	}
-	_, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
 		return
@@ -26,6 +27,9 @@ func AddNewCard(c *gin.Context) {
 	if err != nil {
 		functions.LogError(functions.GetFile(), err)
 		c.JSON(500, gin.H{"message": err.Error()})
+		return
+	}
+	if !requireCollectionOwner(c, newCard.CollectionID, userID) {
 		return
 	}
 
@@ -45,22 +49,23 @@ func GetCards(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
 		return
 	}
-	_, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
 	id, convErr := strconv.Atoi(c.Query("collectionID"))
-
-	cards, fetchErr := functions.FetchCards(id)
-
 	if convErr != nil {
 		functions.LogError(functions.GetFile(), convErr)
 		c.JSON(400, gin.H{"message": "No collectionID given"})
 		return
 	}
+	if !requireCollectionOwner(c, id, userID) {
+		return
+	}
 
+	cards, fetchErr := functions.FetchCards(id)
 	if fetchErr != nil {
 		functions.LogError(functions.GetFile(), fetchErr)
 		c.JSON(500, gin.H{"message": fetchErr.Error()})
@@ -76,13 +81,20 @@ func AddBulkCards(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
 		return
 	}
-	_, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
-	id, _ := strconv.Atoi(c.Query("id"))
+	id, convErr := strconv.Atoi(c.Query("id"))
+	if convErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "No collection id given"})
+		return
+	}
+	if !requireCollectionOwner(c, id, userID) {
+		return
+	}
 	var body struct {
 		Bulk string `json:"bulk"`
 	}
@@ -93,11 +105,7 @@ func AddBulkCards(c *gin.Context) {
 		return
 	}
 
-	type bulkCard struct {
-		Question string
-		Answer   string
-	}
-
+	failed := false
 	bulkCardsCol := strings.Split(body.Bulk, ";;")
 	for _, element := range bulkCardsCol {
 		if element == "" {
@@ -110,10 +118,15 @@ func AddBulkCards(c *gin.Context) {
 		addErr := functions.AddNewCard(sepElement[0], sepElement[1], id)
 		if addErr != nil {
 			functions.LogError(functions.GetFile(), addErr)
-			c.JSON(500, gin.H{"message": "One or more cards could not be added..."})
-			continue
+			failed = true
 		}
 	}
+
+	if failed {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "One or more cards could not be added..."})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Cards added succesfully"})
 }
 
 func DeleteCard(c *gin.Context) {
@@ -122,14 +135,22 @@ func DeleteCard(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
 		return
 	}
-	_, sessionErr := functions.VerifySession(sessionToken)
+	userID, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
 		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
 		return
 	}
 
-	id, _ := strconv.Atoi(c.Query("id"))
-	err := functions.DeleteCard(id)
+	id, convErr := strconv.Atoi(c.Query("id"))
+	if convErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "No card id given"})
+		return
+	}
+	err := functions.DeleteCard(id, userID)
+	if errors.Is(err, functions.ErrCardNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
 	if err != nil {
 		functions.LogError(functions.GetFile(), err)
 		c.JSON(500, gin.H{"message": err.Error()})
