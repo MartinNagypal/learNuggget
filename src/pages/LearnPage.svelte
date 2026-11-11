@@ -29,6 +29,23 @@
 </script>
 
 <main class="learnPage" in:fade={{duration: 200}}>
+    <section class="learnSection">
+        <div class="sectionHeader"><i class="fa-solid fa-star"></i> Markierte Karten</div>
+        {#if loaded && total > 0}
+            <div class="allMarkedBar">
+                <div>
+                    <div class="allMarkedTotal">{total}</div>
+                    <div class="allMarkedSource">aus {collections.length} {collections.length === 1 ? "Kollektion" : "Kollektionen"}</div>
+                </div>
+                <div class="allMarkedButtons">
+                    <button class="accentButton" onclick={() => learnAll(2)}><i class="fa-solid fa-infinity"></i></button>
+                    <button class="accentButton" onclick={() => learnAll(1)}><i class="fa-solid fa-bullseye"></i></button>
+                    <button class="accentButton" onclick={() => learnAll(0)}><i class="fa-solid fa-dumbbell"></i></button>
+                </div>
+            </div>
+        {/if}
+    </section>
+
     {#if loaded}
         {#if total === 0}
             <div class="emptyMarked">
@@ -36,18 +53,6 @@
                 <span class="emptyMarkedHint">Beim Lernen mit <i class="fa-regular fa-star"></i> markieren, dann tauchen sie hier auf.</span>
             </div>
         {:else}
-            <div class="collection">
-                <div class="name">Alle markierten Karten</div>
-                <div class="allMarkedCount">
-                    {total} {total === 1 ? "Karte" : "Karten"} aus {collections.length} {collections.length === 1 ? "Kollektion" : "Kollektionen"}
-                </div>
-                <div class="gamemodeButtons">
-                    <button class="standardButton" onclick={() => learnAll(2)}><i class="fa-solid fa-infinity"></i></button>
-                    <button class="standardButton" onclick={() => learnAll(1)}><i class="fa-solid fa-bullseye"></i></button>
-                    <button class="standardButton" onclick={() => learnAll(0)}><i class="fa-solid fa-dumbbell"></i></button>
-                </div>
-            </div>
-
             <div class="learnPageHeader">Nach Kollektion</div>
             <div class="markedCollections">
                 {#each collections as collection (collection.id)}
@@ -67,11 +72,55 @@
         padding: 25pt 0;
     }
 
-    .allMarkedCount{
-        text-align: center;
-        color: var(--text-color-secondary);
+    .learnSection{
+        width: 90%;
+        max-width: 375px;
+        display: flex;
+        flex-direction: column;
+        gap: 20pt;
+    }
+
+    .sectionHeader{
+        font-family: var(--font-header);
+        font-size: var(--font-size-middle);
+        color: var(--accent-secondary);
+        border-bottom: 1.5pt solid var(--border-color);
+        padding: 2.5pt 7.5pt;
+
+        i {
+            color: var(--accent-primary);
+        }
+    }
+
+    .allMarkedBar{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10pt;
+        padding: 0 7.5pt;
+    }
+
+    .allMarkedTotal{
+        font-family: var(--font-header);
+        font-size: var(--font-size-big);
+        color: var(--accent-primary);
+        line-height: 1;
+    }
+
+    .allMarkedSource{
         font-size: var(--font-size-small);
-        padding-bottom: 4pt;
+        color: var(--text-color-secondary);
+    }
+
+    .allMarkedButtons{
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5pt;
+
+        button {
+            padding: 10pt;
+        }
     }
 
     .learnPageHeader{
@@ -81,7 +130,7 @@
     }
 
     .markedCollections{
-        width: 95%;
+        width: 90%;
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
@@ -96,7 +145,7 @@
         align-items: center;
         justify-content: center;
         gap: 5pt;
-        padding-top: 30%;
+        padding-top: 20pt;
         text-align: center;
 
         font-family: var(--font-header);
