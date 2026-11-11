@@ -50,6 +50,10 @@
     gap: 5pt;
 }
 
+.gamemodeButtonsRight{
+    grid-column: 2;
+}
+
 .modifyButtons{
     display: grid;
     grid-template-columns: repeat(3, 1fr);

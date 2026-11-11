@@ -2,8 +2,12 @@
     import '../style/LearningPage.css'
     import Card from '../lib/Card.svelte'
     import ProgressReport from "../lib/ProgressReport.svelte";
+    import { getContext } from "svelte";
+    import { ALL_MARKED } from "../lib/markedCards.js";
 
-    let {name, id, gameMode} = $props();
+    const showInfo = getContext('showInfo');
+
+    let {name, id, gameMode, markedOnly = false} = $props();
 
     let loaded = $state(0);
     let site = $state(0);
@@ -16,6 +20,7 @@
     let direction = $state(1);
     let progress = $state(0);
     let len = $state(0);
+    let shuffled = $state(false);
 
     function changeSite(){
         if(site === 0){
@@ -26,7 +31,6 @@
         }
     }
 
-
     class CardElement {
         constructor(cardQuestion, cardAnswer, cardId) {
             this.question = cardQuestion;
@@ -35,22 +39,50 @@
         }
     }
 
+    function shuffle(list) {
+        for (let i = list.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [list[i], list[j]] = [list[j], list[i]];
+        }
+        return list;
+    }
+
     async function fetchCards() {
         const params = new URLSearchParams({collectionID: id});
-        const res = await fetch(`/api/cards?${params}`)
+        const url = id === ALL_MARKED ? "/api/cards/marked" : `/api/cards?${params}`;
+        const res = await fetch(url)
         console.log(res);
         const data = await res.json()
-        cards = data.map((card, index) => ({
+        const loadedCards = markedOnly ? data.filter(card => card.marked) : data;
+        const newCards = loadedCards.map((card, index) => ({
             question: card.question,
             answer: card.answer,
             cardId: card.cardId,
+            marked: card.marked,
             originalIndex: index
         }));
+        cards = shuffled ? shuffle(newCards) : newCards;
         len = cards.length;
         loaded = 1;
     }
-
     fetchCards();
+
+    function toggleOrder() {
+        const currentId = cards[currentCard].cardId;
+        shuffled = !shuffled;
+
+        if (shuffled) {
+            const current = cards[currentCard];
+            const rest = cards.filter(card => card.cardId !== currentId);
+            cards = [current, ...shuffle(rest)];
+            currentCard = 0;
+        } else {
+            cards = [...cards].sort((a, b) => a.originalIndex - b.originalIndex);
+            currentCard = cards.findIndex(card => card.cardId === currentId);
+        }
+
+        showInfo(shuffled ? "Zufällige Reihenfolge" : "Reihenfolge wie in der Kollektion", 0);
+    }
 
     function nextCard() {
         direction = 1;
@@ -133,17 +165,39 @@
     }
 
     async function deleteCard(){
-        if(delCount === 0){
-            delCount++
-            return
+        if(gameMode === 2){
+            if(delCount === 0){
+                delCount++
+                return
+            }
+            delCount = 0;
+            const res = await fetch(`/api/card/delete?id=${cards[currentCard].cardId}`, {
+                method: 'DELETE'
+            })
+            if(res.ok){
+                await fetchCards();
+                nextCard();
+            }
         }
-        delCount = 0;
-        const res = await fetch(`/api/card/delete?id=${cards[currentCard].cardId}`, {
-            method: 'DELETE'
-        })
-        if(res.ok){
-            await fetchCards();
-            nextCard();
+        else{
+            showInfo("Delete Cards in only available in Endless mode.", 1);
+        }
+    }
+
+    async function markCard(cardId){
+        const card = cards.find(c => c.cardId === cardId);
+        if (!card) return;
+
+        card.marked = !card.marked;
+
+        const res = await fetch("/api/card/mark", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cardId: cardId, marked: card.marked })
+        });
+        if (!res.ok) {
+            card.marked = !card.marked;
+            showInfo("Markieren fehlgeschlagen", 1);
         }
     }
 
@@ -162,7 +216,9 @@
                         <Card mode={gameMode} text={cards[currentCard].question} answer={cards[currentCard].answer} site={site} changeSite={changeSite} direction={direction} current={(cards[currentCard].originalIndex)+1} len={len} progress={progress} toggleKnownCard={toggleKnowCard} toggleWrong={toggleWrong}/>
                     {/key}
                 {:else if finished === 1}
-                    <ProgressReport mode={gameMode} len={len} wrongCnt={wrong} rightCnt={known} name={name} id={id}/>
+                    <ProgressReport mode={gameMode} len={len} wrongCnt={wrong} rightCnt={known} name={name} id={id} markedOnly={markedOnly}/>
+                {:else if markedOnly}
+                    <span>Hier sind keine Karten markiert.</span>
                 {:else}
                     <span>Diese Kollektion enthält noch keine Karten.</span>
                 {/if}
@@ -170,19 +226,23 @@
 
             {#if cards.length != 0}
                 <div class="learningActions">
-                    <button class="dangerButton" onclick={deleteCard}><i class="fa-solid fa-trash"></i></button>
+                    {#if gameMode === 2}
+                        <button class="dangerButton" onclick={deleteCard}><i class="fa-solid fa-trash"></i></button>
+                    {:else}
+                        <button class="inactiveButton" onclick={deleteCard}><i class="fa-solid fa-trash"></i></button>
+                    {/if}
                     {#if gameMode === 2}
                         <button class="standardButton" onclick={previousCard}><i class="fa-solid fa-angle-left fa-xl"></i></button>
                     {:else}
                         <button class="inactiveButton"><i class="fa-solid fa-angle-left fa-xl"></i></button>
                     {/if}
-                        <button class="standardButton" onclick={changeSite}><i class="fa-solid fa-rotate fa-xl"></i></button>
+                        <button class="standardButton" onclick={toggleOrder} title={shuffled ? "Zufällige Reihenfolge" : "Der Reihe nach"}><i class={shuffled ? "fa-solid fa-shuffle fa-xl" : "fa-solid fa-arrow-down-1-9 fa-xl"}></i></button>
                     {#if gameMode === 2}
                         <button class="standardButton" onclick={nextCard}><i class="fa-solid fa-angle-right fa-xl"></i></button>
                     {:else}
                         <button class="inactiveButton"><i class="fa-solid fa-angle-right fa-xl"></i></button>
                     {/if}
-                    <button class="accentButton"><i class="fa-regular fa-star"></i></button>
+                    <button class="accentButton" onclick={() => markCard(cards[currentCard].cardId)}><i class={cards[currentCard].marked ? "fa-solid fa-star fa-lg" : "fa-regular fa-star fa-lg"}></i></button>
                 </div>
             {/if}
         </div>

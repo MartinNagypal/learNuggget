@@ -168,10 +168,12 @@ html, body {
 
 .infoScreen{
     position: fixed;
-    top: 20pt;
+    top: 0;
     z-index: 100;
     left: 0;
     right: 0;
+    margin: 20pt;
+    box-sizing: border-box;
 
     display:flex;
     flex-direction: row;

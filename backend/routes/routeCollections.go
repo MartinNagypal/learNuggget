@@ -8,6 +8,7 @@ import (
 
 func CollectionRoutes(router *gin.Engine) {
 	router.GET("/collections", handlers.GetCollections)
+	router.GET("/collections/marked", handlers.GetMarkedCollections)
 	router.POST("/collections/new", handlers.NewCollection)
 	router.DELETE("/collections/delete", handlers.RemoveColellectionHandle)
 	router.GET("/collection/len", handlers.GetCollectionLength)

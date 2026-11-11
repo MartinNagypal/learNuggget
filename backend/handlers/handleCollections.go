@@ -181,3 +181,24 @@ func UpdateCollectionProgress(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"message": "Collection updated succesfully"})
 }
+
+func GetMarkedCollections(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	userID, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
+	collections, fetchErr := functions.FetchMarkedCollections(userID)
+	if fetchErr != nil {
+		functions.LogError(functions.GetFile(), fetchErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": fetchErr.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, collections)
+}

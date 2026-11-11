@@ -1,5 +1,7 @@
 package functions
 
+import "errors"
+
 func AddNewCard(question, answer string, collectionID int) error {
 	db, dbErr := openDb()
 	if dbErr != nil || db == nil {
@@ -24,7 +26,7 @@ func FetchCards(collectionID int) ([]Card, error) {
 	}
 	defer db.Close()
 
-	rows, queryErr := db.Query("SELECT question, answer, cardID, collectionID FROM Card WHERE collectionID = ?", collectionID)
+	rows, queryErr := db.Query("SELECT question, answer, cardID, collectionID, marked FROM Card WHERE collectionID = ?", collectionID)
 	if queryErr != nil {
 		LogError(GetFile(), queryErr)
 		return nil, queryErr
@@ -34,7 +36,7 @@ func FetchCards(collectionID int) ([]Card, error) {
 	cards := []Card{}
 	for rows.Next() {
 		var cardElement Card
-		scanErr := rows.Scan(&cardElement.Question, &cardElement.Answer, &cardElement.CardID, &cardElement.CollectionID)
+		scanErr := rows.Scan(&cardElement.Question, &cardElement.Answer, &cardElement.CardID, &cardElement.CollectionID, &cardElement.Marked)
 		if scanErr != nil {
 			LogError(GetFile(), scanErr)
 			return nil, scanErr
@@ -60,4 +62,66 @@ func DeleteCard(cardId int) error {
 	}
 
 	return nil
+}
+
+func MarkCard(cardID int, marked bool, userID int) error {
+	db, dbErr := openDb()
+	if dbErr != nil {
+		LogError(GetFile(), dbErr)
+		return dbErr
+	}
+	defer db.Close()
+
+	result, execErr := db.Exec(`
+		UPDATE Card SET marked = ?
+		WHERE cardID = ?
+		  AND collectionID IN (SELECT collectionID FROM Collection WHERE userID = ?)`,
+		marked, cardID, userID)
+	if execErr != nil {
+		LogError(GetFile(), execErr)
+		return execErr
+	}
+
+	affected, affectedErr := result.RowsAffected()
+	if affectedErr != nil {
+		LogError(GetFile(), affectedErr)
+		return affectedErr
+	}
+	if affected == 0 {
+		return errors.New("Card not found")
+	}
+	return nil
+}
+
+func FetchMarkedCards(userID int) ([]Card, error) {
+	db, dbErr := openDb()
+	if dbErr != nil {
+		LogError(GetFile(), dbErr)
+		return nil, dbErr
+	}
+	defer db.Close()
+
+	rows, queryErr := db.Query(`
+		SELECT c.question, c.answer, c.cardID, c.collectionID, c.marked
+		FROM Card c
+		JOIN Collection col ON c.collectionID = col.collectionID
+		WHERE col.userID = ? AND c.marked = 1
+		ORDER BY col.name, c.cardID`, userID)
+	if queryErr != nil {
+		LogError(GetFile(), queryErr)
+		return nil, queryErr
+	}
+	defer rows.Close()
+
+	cards := []Card{}
+	for rows.Next() {
+		var cardElement Card
+		scanErr := rows.Scan(&cardElement.Question, &cardElement.Answer, &cardElement.CardID, &cardElement.CollectionID, &cardElement.Marked)
+		if scanErr != nil {
+			LogError(GetFile(), scanErr)
+			return nil, scanErr
+		}
+		cards = append(cards, cardElement)
+	}
+	return cards, nil
 }

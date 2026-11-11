@@ -6,11 +6,23 @@ type CollectionElement struct {
 	Gid  int
 }
 
+type MarkedCollectionElement struct {
+	Name   string `json:"name"`
+	Id     int    `json:"id"`
+	Marked int    `json:"marked"`
+}
+
 type Card struct {
 	Question     string `json:"question"`
 	Answer       string `json:"answer"`
 	CardID       int    `json:"cardId"`
 	CollectionID int    `json:"collectionID"`
+	Marked       bool   `json:"marked"`
+}
+
+type MarkCardRequest struct {
+	CardID int  `json:"cardId"`
+	Marked bool `json:"marked"`
 }
 
 type UserElement struct {
@@ -26,6 +38,7 @@ type UserLogin struct {
 
 type CollectionStats struct {
 	Len         int     `json:"len"`
+	Marked      int     `json:"marked"`
 	AvgScore    float64 `json:"avgScore"`
 	LastScore   float64 `json:"lastScore"`
 	TotalPlayed int     `json:"totalPlayed"`

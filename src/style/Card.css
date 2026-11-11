@@ -1,15 +1,16 @@
 .card {
     border: 2pt solid var(--accent-secondary);
     border-radius: var(--border-radius-primary);
-    min-width: 250px;
-    max-width: min(75%, 400px);
-    min-height: 300px;
-    max-height: 450px;
+    width: min(80vw, 400px);
+    height: min(60dvh, 425px);
+    box-sizing: border-box;
 
     background-color: var(--accent-secondary);
     box-shadow: 0 0 5pt 2pt var(--border-color);
 
     display:grid;
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     padding: 5pt;
     color: var(--text-color-white);
     position: relative;
@@ -53,13 +54,21 @@
     font-weight: bold;
 
     width: 100%;
-    height: 100%;
+    /* füllt den freien Platz der Vorderseite, scrollt bei langem Text */
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
     display:flex;
     justify-content: left;
-    align-items: center;
+    align-items: flex-start;
     box-sizing: border-box;
     padding: 15pt;
     padding-right: 0pt;
+}
+
+/* vertikal zentriert wie vorher, aber bei Überlänge bleibt der Anfang scrollbar */
+.cardContent > * {
+    margin-block: auto;
 }
 
 .cardBottom{
@@ -117,6 +126,10 @@
     display: flex;
     justify-content: left;
     opacity: 100;
+    /* lange Fragen auf der Rückseite lassen genug Platz für die Antwort */
+    flex-shrink: 0;
+    max-height: 35%;
+    overflow-y: auto;
 }
 
 .answer{
@@ -130,23 +143,36 @@
     font-size: var(--font-size-middle);
     opacity: 100;
     overflow: auto;
+    min-height: 0;
     margin-bottom: 10pt;
 }
 
-.answer::-webkit-scrollbar {
+.answer::-webkit-scrollbar,
+.cardContent::-webkit-scrollbar,
+.question::-webkit-scrollbar {
     width: 5px;
 }
 
-.answer::-webkit-scrollbar-track {
+.answer::-webkit-scrollbar-track,
+.cardContent::-webkit-scrollbar-track,
+.question::-webkit-scrollbar-track {
     background: transparent;
     margin:25px 0;
 }
 
-.answer::-webkit-scrollbar-thumb {
+.answer::-webkit-scrollbar-thumb,
+.cardContent::-webkit-scrollbar-thumb,
+.question::-webkit-scrollbar-thumb {
     background-color: var(--accent-surface);
     border-radius: 999px;
 }
 
 .hidden{
     opacity: 0;
+}
+
+/* die unsichtbare Antwort auf der Vorderseite hat nur Platz reserviert;
+   bei fester Kartengröße würde sie der Frage den halben Platz wegnehmen */
+.front .answer.hidden {
+    display: none;
 }

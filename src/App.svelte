@@ -17,6 +17,8 @@
   let selectedId = $state(0);
   let learningSession = $state(0);
   let gameMode = $state(0);
+  let markedOnly = $state(false);
+  let returnPage = $state(0);
   let infoVisible = $state(0);
   let infoMessage = $state("");
   let infoError = $state(0);
@@ -47,15 +49,24 @@
 
   setContext('toggleIsLoggedIn', toggleIsLoggedIn)
 
-  function learningPage(name, id, gamemode){
+  function learningPage(name, id, gamemode, onlyMarked = false){
+      if (page !== 1) {
+          returnPage = page;
+      }
       selectedCollection = name;
       selectedId = id;
+      markedOnly = onlyMarked;
       homePage();
       learningSession++;
       page = 1;
       gameMode = gamemode;
   }
   setContext('learningPage', learningPage)
+
+  function leaveLearningPage(){
+      page = returnPage;
+  }
+  setContext('leaveLearningPage', leaveLearningPage);
 
   function showInfo(info, error){
       infoMessage = info;
@@ -122,7 +133,7 @@
                 <Homepage learningpage={learningPage} />
             {:else if page === 1}
                 {#key learningSession}
-                    <LearningPage name={selectedCollection} id={selectedId} gameMode={gameMode}/>
+                    <LearningPage name={selectedCollection} id={selectedId} gameMode={gameMode} markedOnly={markedOnly}/>
                 {/key}
             {:else if page === 2}
                 <SocialPage name={name}/>

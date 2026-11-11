@@ -2,6 +2,7 @@
     let {id, version} = $props();
 
     let len = $state(0);
+    let marked = $state(0);
     let avgScore = $state(0);
     let lastScore = $state(0);
     let totalPlayed = $state(0);
@@ -16,6 +17,7 @@
         lastScore = data.lastScore;
         totalPlayed = data.totalPlayed;
         len = data.len;
+        marked = data.marked;
     }
     getCollectionStats();
 
@@ -31,7 +33,7 @@
         <div class="statFooter">Cards</div>
     </div>
     <div class="collectionStatElement">
-        <div class="statHeader">0</div>
+        <div class="statHeader">{marked}</div>
         <div class="statFooter">Marked</div>
     </div>
     <div class="collectionStatElement">

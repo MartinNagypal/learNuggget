@@ -7,7 +7,7 @@
     import { fade, fly, scale } from 'svelte/transition';
 
     const showInfo = getContext('showInfo');
-    let {name, id, learningpage, reloadCollections} = $props();
+    let {name, id, learningpage, reloadCollections, markedMode = false} = $props();
     let addSingleCardActive = $state(0);
     let showCollectionSettings = $state(0);
 
@@ -54,22 +54,24 @@
         <CollectionStats id={id} version={statsVersion}/>
     </div>
     <div class="collectionActions">
-        <div class="modifyButtons">
-            {#if showCollectionSettings === 0}
-                <button class="successButton" onclick={toggleShowCollectionSettings} in:scale={{ duration: 150, start: 0.8 }}><i class="fa-solid fa-angle-down"></i></button>
-            {:else}
-                <button class="dangerButton" onclick={toggleShowCollectionSettings} in:scale={{ duration: 150, start: 0.8 }}><i class="fa-solid fa-angle-up"></i></button>
-            {/if}
-            <button class="dangerButton" onclick={removeCollection}><i class="fa-solid fa-trash"></i></button>
-        </div>
-        <div class="gamemodeButtons">
-            <button class="standardButton"onclick={() => learningpage(name, id, 2)}><i class="fa-solid fa-infinity"></i></button>
-            <button class="standardButton"onclick={() => learningpage(name, id, 1)}><i class="fa-solid fa-bullseye"></i></button>
-            <button class="standardButton" onclick={() => learningpage(name, id, 0)}><i class="fa-solid fa-dumbbell"></i></button>
+        {#if !markedMode}
+            <div class="modifyButtons">
+                {#if showCollectionSettings === 0}
+                    <button class="successButton" onclick={toggleShowCollectionSettings} in:scale={{ duration: 150, start: 0.8 }}><i class="fa-solid fa-angle-down"></i></button>
+                {:else}
+                    <button class="dangerButton" onclick={toggleShowCollectionSettings} in:scale={{ duration: 150, start: 0.8 }}><i class="fa-solid fa-angle-up"></i></button>
+                {/if}
+                <button class="dangerButton" onclick={removeCollection}><i class="fa-solid fa-trash"></i></button>
+            </div>
+        {/if}
+        <div class="gamemodeButtons" class:gamemodeButtonsRight={markedMode}>
+            <button class="standardButton"onclick={() => learningpage(name, id, 2, markedMode)}><i class="fa-solid fa-infinity"></i></button>
+            <button class="standardButton"onclick={() => learningpage(name, id, 1, markedMode)}><i class="fa-solid fa-bullseye"></i></button>
+            <button class="standardButton" onclick={() => learningpage(name, id, 0, markedMode)}><i class="fa-solid fa-dumbbell"></i></button>
         </div>
 
     </div>
-    {#if showCollectionSettings === 1}
+    {#if showCollectionSettings === 1 && !markedMode}
         <AddSingleCard CollectionID={id} toggleAddSingleCardActive={toggleShowCollectionSettings} reloadCollectionStats={reloadStats}/>
         <CollectionSettings id={id} toggleShowCollectionSettings={toggleShowCollectionSettings} reloadCollectionLen={reloadStats}/>
     {/if}

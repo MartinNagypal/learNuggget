@@ -139,6 +139,11 @@ func GetCollectionStats(collectionID int) (CollectionStats, error) {
 		return CollectionStats{}, lenErr
 	}
 	stats.Len = len
+	markedErr := db.QueryRow("SELECT COUNT(*) FROM Card WHERE collectionID = ? AND marked = 1", collectionID).Scan(&stats.Marked)
+	if markedErr != nil {
+		LogError(GetFile(), markedErr)
+		return CollectionStats{}, markedErr
+	}
 	execErr := db.QueryRow("SELECT avgScore, lastScore, totalPlayed FROM CollectionProgress WHERE collectionID = (?)", collectionID).Scan(&stats.AvgScore, &stats.LastScore, &stats.TotalPlayed)
 	if execErr != nil {
 		LogError(GetFile(), execErr)
@@ -161,4 +166,41 @@ func UpdateCollectionStats(stats UpdatedCollectionStatsElement) error {
 		return execErr
 	}
 	return nil
+}
+
+func FetchMarkedCollections(userID int) ([]MarkedCollectionElement, error) {
+	collections := []MarkedCollectionElement{}
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return collections, openErr
+	}
+	defer db.Close()
+
+	rows, queryErr := db.Query(`
+		SELECT col.collectionID, col.name, COUNT(c.cardID)
+		FROM Collection col
+		JOIN Card c ON c.collectionID = col.collectionID
+		WHERE col.userID = ? AND c.marked = 1
+		GROUP BY col.collectionID, col.name
+		ORDER BY col.name`, userID)
+	if queryErr != nil {
+		LogError(GetFile(), queryErr)
+		return collections, queryErr
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var collection MarkedCollectionElement
+		if err := rows.Scan(&collection.Id, &collection.Name, &collection.Marked); err != nil {
+			LogError(GetFile(), err)
+			return collections, err
+		}
+		collections = append(collections, collection)
+	}
+	if err := rows.Err(); err != nil {
+		LogError(GetFile(), err)
+		return collections, err
+	}
+	return collections, nil
 }

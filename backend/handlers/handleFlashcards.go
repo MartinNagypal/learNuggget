@@ -137,3 +137,52 @@ func DeleteCard(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"message": "Deleted Succesfully"})
 }
+
+func MarkCard(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	userID, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
+	var req functions.MarkCardRequest
+	bindErr := c.ShouldBindJSON(&req)
+	if bindErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": bindErr.Error()})
+		return
+	}
+
+	markErr := functions.MarkCard(req.CardID, req.Marked, userID)
+	if markErr != nil {
+		functions.LogError(functions.GetFile(), markErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": markErr.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Card updated"})
+}
+
+func GetMarkedCards(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	userID, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+
+	cards, fetchErr := functions.FetchMarkedCards(userID)
+	if fetchErr != nil {
+		functions.LogError(functions.GetFile(), fetchErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": fetchErr.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, cards)
+}

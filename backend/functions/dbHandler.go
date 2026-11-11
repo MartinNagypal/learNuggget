@@ -57,6 +57,7 @@ func InitTables() error {
 		    cardID INTEGER PRIMARY KEY,
 		    question TEXT NOT NULL,
 			answer TEXT NOT NULL,
+			marked BOOLEAN NOT NULL DEFAULT 0,
 			collectionID INTEGER NOT NULL
 			)
 		`)

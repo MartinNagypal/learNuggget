@@ -2,11 +2,11 @@
     import {getContext} from "svelte";
     import {fade} from "svelte/transition";
 
-    const goToHomepage = getContext('homepage');
+    const leaveLearningPage = getContext('leaveLearningPage');
     const goToLearningPage = getContext('learningPage');
     const showInfo = getContext('showInfo')
 
-    let {mode, len, wrongCnt, rightCnt, name, id} = $props();
+    let {mode, len, wrongCnt, rightCnt, name, id, markedOnly = false} = $props();
     let score = $state(0);
 
     let avgScore = 0;
@@ -20,7 +20,11 @@
         score = Number(((rightCnt/len) * 100).toFixed(1));
     }
     function learnAgain() {
-        goToLearningPage(name, id, mode);
+        goToLearningPage(name, id, mode, markedOnly);
+    }
+
+    function learnMarked() {
+        goToLearningPage(name, id, mode, true);
     }
 
     async function getStatsUpdateStats(){
@@ -48,7 +52,9 @@
             return;
         }
     }
-    getStatsUpdateStats();
+    if (!markedOnly) {
+        getStatsUpdateStats();
+    }
 
 </script>
 
@@ -70,8 +76,10 @@
 
     <div class="progressReportActions">
         <button class="successButton" onclick={learnAgain}>Nochmal lernen</button>
-        <button class="accentButton">Markierte Karten lernen</button>
-        <button class="standardButton" onclick={goToHomepage}> Zum Hauptmenü</button>
+        {#if !markedOnly}
+            <button class="accentButton" onclick={learnMarked}>Markierte Karten lernen</button>
+        {/if}
+        <button class="standardButton" onclick={leaveLearningPage}> Zum Hauptmenü</button>
     </div>
 </div>
 
@@ -116,7 +124,7 @@
 
     .progressReportActions {
         display: grid;
-        grid-template-rows: repeat(3, 1fr);
+        grid-auto-rows: 1fr;
         gap: 5pt;
         width: 70%;
     }
