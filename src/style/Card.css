@@ -171,8 +171,6 @@
     opacity: 0;
 }
 
-/* die unsichtbare Antwort auf der Vorderseite hat nur Platz reserviert;
-   bei fester Kartengröße würde sie der Frage den halben Platz wegnehmen */
 .front .answer.hidden {
     display: none;
 }

@@ -71,8 +71,6 @@
   }
   setContext('leaveLearningPage', leaveLearningPage);
 
-  // Timer of the toast currently shown. A new toast cancels it, otherwise the
-  // old timer would hide the new toast too early.
   let infoTimer;
   function showInfo(info, error){
       infoMessage = info;

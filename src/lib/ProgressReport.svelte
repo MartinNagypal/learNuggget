@@ -11,8 +11,6 @@
 
     let progess = $state(0);
 
-    // Local score is only for display (e.g. marked-only sessions, which are not recorded).
-    // The recorded score is computed by the server from the raw counts.
     if(mode === 0){
         score = Number((100 / (1 + (wrongCnt*2) / len)).toFixed(1));
     }

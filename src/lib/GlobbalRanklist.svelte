@@ -30,7 +30,6 @@
         <div class="rankListElement">Noch keine Einträge</div>
     {/each}
 </div>
-
 <style>
     .globalRanklist {
         display: flex;

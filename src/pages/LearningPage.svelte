@@ -114,7 +114,6 @@
         }
         else if(gameMode === 1){
             cards.splice(currentCard, 1);
-            // after removing the last card, currentCard would point past the end
             if (cards.length > 0) {
                 currentCard = Math.min(currentCard, cards.length - 1);
             }
@@ -189,8 +188,6 @@
                 method: 'DELETE'
             })
             if(res.ok){
-                // Remove the card locally instead of fetchCards(): keeps the current
-                // (shuffled) order, and the following card moves up to currentCard.
                 const deleted = cards[currentCard];
                 cards.splice(currentCard, 1);
                 for (const card of cards) {
