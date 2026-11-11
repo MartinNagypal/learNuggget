@@ -12,4 +12,6 @@ func AuthRoutes(router *gin.Engine) {
 	router.GET("/auth/verifySession", handlers.VerifySessionValid)
 	router.GET("/auth/logout", handlers.Logout)
 	router.GET("/auth/username", handlers.FetchUsername)
+	router.GET("auth/deleteUser", handlers.DelAccount)
+	router.GET("/auth/logout/all", handlers.LogoutAllSession)
 }

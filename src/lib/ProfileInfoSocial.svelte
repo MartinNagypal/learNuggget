@@ -19,7 +19,6 @@
         <div class="profileInfoSocialScore">Score</div>
         <div class="profileInfoSocialScoreValue">{profileScore.toFixed(1)}%</div>
     </div>
-
 </div>
 
 <style>

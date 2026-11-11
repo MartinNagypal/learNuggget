@@ -1,6 +1,7 @@
 <script>
     import ProfileInfoSocial from "../lib/ProfileInfoSocial.svelte";
     import GlobbalRanklist from "../lib/GlobbalRanklist.svelte";
+    import Settings from "../lib/Settings.svelte";
     import {fade} from "svelte/transition";
 
     let {name} = $props();
@@ -9,6 +10,7 @@
 <div class="socialPage" in:fade={{duration: 200}}>
     <ProfileInfoSocial name={name}/>
     <GlobbalRanklist/>
+    <Settings/>
 </div>
 
 <style>

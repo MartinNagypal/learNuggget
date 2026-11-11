@@ -148,14 +148,17 @@ func VerifySession(sessionToken string) (int, error) {
 	return userId, nil
 }
 
-func FuncLogout(userID int) error {
-	db, dbErr := openDb()
-	if dbErr != nil {
-		LogError(GetFile(), dbErr)
-		return dbErr
+func FuncLogout(sessionToken string) error {
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return openErr
 	}
 	defer db.Close()
-	_, execErr := db.Exec("DELETE FROM SessionT WHERE userID = ?", userID)
+
+	// In der DB steht nur der Hash, nicht der Token selbst
+	tokenHash := GenerateHash(sessionToken)
+	_, execErr := db.Exec("DELETE FROM SessionT WHERE sessionToken = ?", tokenHash)
 	if execErr != nil {
 		LogError(GetFile(), execErr)
 		return execErr
@@ -178,4 +181,62 @@ func GetUsername(userID int) (string, error) {
 		return "", scanErr
 	}
 	return username, nil
+}
+
+func DeleteAccount(userID int) error {
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return openErr
+	}
+	defer db.Close()
+
+	tx, txErr := db.Begin()
+	if txErr != nil {
+		LogError(GetFile(), txErr)
+		return txErr
+	}
+	// Wenn Commit schon gelaufen ist, macht Rollback nichts mehr
+	defer tx.Rollback()
+
+	// Reihenfolge: zuerst die abhängigen Daten, ganz zum Schluss der User selbst
+	queries := []string{
+		`DELETE FROM CollectionProgress WHERE collectionID IN (SELECT collectionID FROM Collection WHERE userID = ?)`,
+		`DELETE FROM Card WHERE collectionID IN (SELECT collectionID FROM Collection WHERE userID = ?)`,
+		`DELETE FROM Collection WHERE userID = ?`,
+		`DELETE FROM CollectionGroup WHERE userID = ?`,
+		`DELETE FROM SessionT WHERE userID = ?`,
+		`DELETE FROM UserT WHERE userID = ?`,
+	}
+
+	for _, query := range queries {
+		_, execErr := tx.Exec(query, userID)
+		if execErr != nil {
+			LogError(GetFile(), execErr)
+			return execErr
+		}
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		LogError(GetFile(), commitErr)
+		return commitErr
+	}
+	return nil
+}
+
+func LogoutAllSessions(userID int) error {
+	db, openErr := openDb()
+	if openErr != nil {
+		LogError(GetFile(), openErr)
+		return openErr
+	}
+	defer db.Close()
+
+	_, execErr := db.Exec("DELETE FROM SessionT WHERE userID = ?", userID)
+	if execErr != nil {
+		LogError(GetFile(), execErr)
+		return execErr
+	}
+	return nil
 }

@@ -10,7 +10,8 @@
     let score = $state(0);
 
     let avgScore = 0;
-    let lastScore = 0;
+    let lastScoreOld = $state(0);
+    let progess = $state(0);
 
     if(mode === 0){
         score = Number((100 / (1 + (wrongCnt*2) / len)).toFixed(1));
@@ -29,6 +30,12 @@
             return;
         }
         const data = await res.json()
+
+        lastScoreOld = data.lastScore;
+        if(data.totalPlayed > 0){
+            progess = score - lastScoreOld;
+        }
+
         const newAvgScore = Number(((data.avgScore * data.totalPlayed + score) / (data.totalPlayed + 1)).toFixed(1));
         const update = await fetch("/api/collection/stats/update", {
             method: "PATCH",
@@ -49,6 +56,11 @@
     <span class="progressReportHeader">Geschafft!</span>
     <span>Score</span>
     <span class="progressReportScore">{score}%</span>
+    {#if progess > 0}
+        <span style="color: var(--success-color); font-size: var(--font-size-small)"><i class="fa-solid fa-angles-up"></i> +{progess.toFixed(1)}%</span>
+    {:else if progess < 0}
+        <span style="color: var(--failure-color); font-size: var(--font-size-small)"><i class="fa-solid fa-angles-down"></i> {progess.toFixed(1)}%</span>
+    {/if}
     {#if mode === 0}
         <span>Anzahl Falsch</span>
         <span class="progressReportFalse">{wrongCnt}</span>

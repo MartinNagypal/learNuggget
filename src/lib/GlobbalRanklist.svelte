@@ -48,8 +48,8 @@
     }
 
     .rankListElement{
-        display: flex;
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: 1fr 3fr 1fr;   /* Rang | Name | Score */
         align-items: center;
         justify-content: center;
         gap: 50pt;
@@ -60,7 +60,7 @@
 
         font-family: var(--font-header);
         text-align: center;
-
+        color: var(--text-color-secondary);
     }
 
     .gold {

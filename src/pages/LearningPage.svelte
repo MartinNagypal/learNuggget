@@ -149,6 +149,8 @@
 
 </script>
 
+
+
 <svelte:window onkeydown={handleKeydown} />
 <svelte:document ontouchstart={handleTouchStart} ontouchend={handleTouchEnd} />
 <div class="main">

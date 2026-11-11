@@ -80,13 +80,13 @@ func Logout(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
 		return
 	}
-	userID, sessionErr := functions.VerifySession(sessionToken)
+	_, sessionErr := functions.VerifySession(sessionToken)
 	if sessionErr != nil {
 		functions.LogError(functions.GetFile(), sessionErr)
 		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
 		return
 	}
-	logoutErr := functions.FuncLogout(userID)
+	logoutErr := functions.FuncLogout(sessionToken)
 	if logoutErr != nil {
 		functions.LogError(functions.GetFile(), logoutErr)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": logoutErr.Error()})
@@ -113,4 +113,45 @@ func FetchUsername(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"username": username})
+}
+
+func DelAccount(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	userID, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+	delErr := functions.DeleteAccount(userID)
+	if delErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{"message": delErr.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Succesfully deleted account"})
+}
+
+func LogoutAllSession(c *gin.Context) {
+	sessionToken, cookieErr := c.Cookie("sessionToken")
+	if cookieErr != nil {
+		functions.LogError(functions.GetFile(), cookieErr)
+		c.JSON(http.StatusForbidden, gin.H{"message": cookieErr.Error()})
+		return
+	}
+	userID, sessionErr := functions.VerifySession(sessionToken)
+	if sessionErr != nil {
+		functions.LogError(functions.GetFile(), sessionErr)
+		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
+		return
+	}
+	logoutErr := functions.LogoutAllSessions(userID)
+	if logoutErr != nil {
+		functions.LogError(functions.GetFile(), logoutErr)
+		c.JSON(http.StatusForbidden, gin.H{"message": logoutErr.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Succesfully logged out from all sessions"})
 }

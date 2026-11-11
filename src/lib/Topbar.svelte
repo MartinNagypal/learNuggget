@@ -1,6 +1,6 @@
 <script>
     import '../style/Topbar.css'
-    import {getContext} from "svelte";
+    import {getContext, setContext} from "svelte";
 
     const verifySession = getContext("verifySession")
     const showInfo = getContext('showInfo')

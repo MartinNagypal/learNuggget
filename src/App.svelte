@@ -1,14 +1,15 @@
 <script>
   import {getContext, setContext} from "svelte";
+  import {fade} from "svelte/transition";
   import Login from "./pages/Login.svelte";
   import Homepage from './pages/Homepage.svelte';
   import LearningPage from "./pages/LearningPage.svelte";
   import Topbar from './lib/Topbar.svelte'
-  import Footer from './lib/Footer.svelte'
   import InfoMessage from "./lib/InfoMessage.svelte";
   import NavBar from "./lib/NavBar.svelte";
   import SocialPage from "./pages/SocialPage.svelte";
   import LearnPage from "./pages/LearnPage.svelte";
+  import ConfirmDeleteAccount from "./lib/ConfirmDeleteAccount.svelte";
 
   let isLoggedIn = $state(0);
   let page = $state(0);
@@ -20,6 +21,7 @@
   let infoMessage = $state("");
   let infoError = $state(0);
   let name = $state("");
+  let showConfirmDeleteAccount = $state(0);
 
   async function verifySession(){
       const res = await fetch("/api/auth/verifySession");
@@ -38,6 +40,12 @@
    page = 0;
   }
   setContext('homepage', homePage);
+
+  function toggleIsLoggedIn(){
+      isLoggedIn = (isLoggedIn+1) % 2;
+  }
+
+  setContext('toggleIsLoggedIn', toggleIsLoggedIn)
 
   function learningPage(name, id, gamemode){
       selectedCollection = name;
@@ -73,9 +81,36 @@
   }
   getUsername();
 
+  function toggleConfirmAccountDeletion(){
+      if (showConfirmDeleteAccount === 0){
+          showConfirmDeleteAccount = 1;
+      }
+      else {
+          showConfirmDeleteAccount = 0;
+      }
+  }
+
+  setContext('toggleConfirmAccountDeletion', toggleConfirmAccountDeletion);
+
+  async function logout(){
+      const res = await fetch("/api/auth/logout")
+      const data = await res.json()
+      if(!res.ok){
+          showInfo(data.message, 1);
+          return
+      }
+      await verifySession();
+      showInfo(data.message, 0);
+  }
+
+  setContext('logout', logout);
+
 </script>
 
 <main class="app">
+    {#if showConfirmDeleteAccount === 1}
+        <div class="confirmDeleteContainer" transition:fade={{duration: 200}}><ConfirmDeleteAccount/></div>
+    {/if}
     <div class="topbar"><Topbar homepage={homePage} isLoggedIn={isLoggedIn}/></div>
     {#if infoVisible === 1}
         <div class="infoScreen"><InfoMessage infoMesage={infoMessage} error={infoError}/></div>

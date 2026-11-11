@@ -178,6 +178,7 @@ html, body {
     justify-content: center;
     align-items: center;
     height: 50px;
+    z-index: 100;
 }
 
 .pageContent{
@@ -194,4 +195,14 @@ html, body {
     bottom: 0;
     left: 0;
     z-index: 10;
+}
+
+.confirmDeleteContainer{
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+
+    display: flex;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
 }
