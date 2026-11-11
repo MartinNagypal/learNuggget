@@ -60,10 +60,20 @@ type CollectionStats struct {
 	TotalPlayed int     `json:"totalPlayed"`
 }
 
-type UpdatedCollectionStatsElement struct {
-	AvgScore     float64 `json:"avgScore"`
-	LastScore    float64 `json:"lastScore"`
-	CollectionID int     `json:"collectionID"`
+// LearnResult is what the client reports after finishing a learning session.
+// Only raw counts are accepted; the score is computed on the server.
+type LearnResult struct {
+	CollectionID int `json:"collectionID"`
+	Mode         int `json:"mode"`
+	RightCnt     int `json:"rightCnt"`
+	WrongCnt     int `json:"wrongCnt"`
+}
+
+// LearnResultResponse is returned after a learning session was recorded.
+type LearnResultResponse struct {
+	Score             float64 `json:"score"`
+	PreviousLastScore float64 `json:"previousLastScore"`
+	PreviousPlayed    int     `json:"previousPlayed"`
 }
 
 type GroupElement struct {

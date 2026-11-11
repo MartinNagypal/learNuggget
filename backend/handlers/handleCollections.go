@@ -192,23 +192,27 @@ func UpdateCollectionProgress(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": sessionErr.Error()})
 		return
 	}
-	var updatedStats functions.UpdatedCollectionStatsElement
-	bindErr := c.ShouldBind(&updatedStats)
+	var result functions.LearnResult
+	bindErr := c.ShouldBindJSON(&result)
 	if bindErr != nil {
 		functions.LogError(functions.GetFile(), bindErr)
-		c.JSON(500, gin.H{"message": bindErr.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": bindErr.Error()})
 		return
 	}
-	if !requireCollectionOwner(c, updatedStats.CollectionID, userID) {
+	if !requireCollectionOwner(c, result.CollectionID, userID) {
 		return
 	}
-	updateErr := functions.UpdateCollectionStats(updatedStats)
+	response, updateErr := functions.UpdateCollectionStats(result)
+	if errors.Is(updateErr, functions.ErrInvalidLearnResult) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": updateErr.Error()})
+		return
+	}
 	if updateErr != nil {
 		functions.LogError(functions.GetFile(), updateErr)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": updateErr.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"message": "Collection updated succesfully"})
+	c.JSON(http.StatusOK, response)
 }
 
 func GetMarkedCollections(c *gin.Context) {

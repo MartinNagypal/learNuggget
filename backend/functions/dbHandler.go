@@ -7,8 +7,12 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// busy_timeout: when another request holds the write lock, wait up to 5s
+// instead of failing immediately with SQLITE_BUSY ("database is locked").
+const dbDSN = "learNuggget.db?_pragma=busy_timeout(5000)"
+
 func openDb() (*sql.DB, error) {
-	db, dbErr := sql.Open("sqlite", "learNuggget.db")
+	db, dbErr := sql.Open("sqlite", dbDSN)
 	if dbErr != nil {
 		log.Fatal(dbErr)
 		return nil, dbErr

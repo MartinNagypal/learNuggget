@@ -9,10 +9,10 @@
     let {mode, len, wrongCnt, rightCnt, name, id, markedOnly = false} = $props();
     let score = $state(0);
 
-    let avgScore = 0;
-    let lastScoreOld = $state(0);
     let progess = $state(0);
 
+    // Local score is only for display (e.g. marked-only sessions, which are not recorded).
+    // The recorded score is computed by the server from the raw counts.
     if(mode === 0){
         score = Number((100 / (1 + (wrongCnt*2) / len)).toFixed(1));
     }
@@ -28,28 +28,21 @@
     }
 
     async function getStatsUpdateStats(){
-        const res = await fetch(`/api/collection/stats?id=${encodeURIComponent(id)}`);
-        if(!res.ok){
-            showInfo("Failed to update stats.", 1);
-            return;
-        }
-        const data = await res.json()
-
-        lastScoreOld = data.lastScore;
-        if(data.totalPlayed > 0){
-            progess = score - lastScoreOld;
-        }
-
-        const newAvgScore = Number(((data.avgScore * data.totalPlayed + score) / (data.totalPlayed + 1)).toFixed(1));
         const update = await fetch("/api/collection/stats/update", {
             method: "PATCH",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ collectionID: id, avgScore: newAvgScore, lastScore:score})
+            body: JSON.stringify({ collectionID: id, mode: mode, rightCnt: rightCnt, wrongCnt: wrongCnt })
         });
         if(!update.ok){
             showInfo("Failed to update stats.", 1);
             return;
+        }
+        const data = await update.json();
+
+        score = data.score;
+        if(data.previousPlayed > 0){
+            progess = score - data.previousLastScore;
         }
     }
     if (!markedOnly) {

@@ -1,6 +1,9 @@
 package functions
 
-import "errors"
+import (
+	"errors"
+	"math"
+)
 
 // ErrCollectionNotFound is returned when a collection does not exist or does
 // not belong to the requesting user. Both cases are reported the same way so
@@ -87,22 +90,35 @@ func RemoveCollection(collectionID, userID int) error {
 		return ErrCollectionNotFound
 	}
 
-	_, cardErr := db.Exec("DELETE FROM Card WHERE collectionID = (?)", collectionID)
+	// All-or-nothing: never leave a collection without its cards or progress row.
+	tx, txErr := db.Begin()
+	if txErr != nil {
+		LogError(GetFile(), txErr)
+		return txErr
+	}
+	defer tx.Rollback()
+
+	_, cardErr := tx.Exec("DELETE FROM Card WHERE collectionID = (?)", collectionID)
 	if cardErr != nil {
 		LogError(GetFile(), cardErr)
 		return cardErr
 	}
 
-	_, collErr := db.Exec("DELETE FROM Collection WHERE collectionID = (?) AND userID = (?)", collectionID, userID)
+	_, collErr := tx.Exec("DELETE FROM Collection WHERE collectionID = (?) AND userID = (?)", collectionID, userID)
 	if collErr != nil {
 		LogError(GetFile(), collErr)
 		return collErr
 	}
 
-	_, collProgErr := db.Exec("DELETE FROM CollectionProgress WHERE CollectionID = (?)", collectionID)
+	_, collProgErr := tx.Exec("DELETE FROM CollectionProgress WHERE CollectionID = (?)", collectionID)
 	if collProgErr != nil {
 		LogError(GetFile(), collProgErr)
 		return collProgErr
+	}
+
+	if commitErr := tx.Commit(); commitErr != nil {
+		LogError(GetFile(), commitErr)
+		return commitErr
 	}
 	return nil
 }
@@ -184,20 +200,75 @@ func GetCollectionStats(collectionID int) (CollectionStats, error) {
 	return stats, nil
 }
 
-func UpdateCollectionStats(stats UpdatedCollectionStatsElement) error {
+// ErrInvalidLearnResult is returned when the reported counts cannot come from a real session.
+var ErrInvalidLearnResult = errors.New("Invalid learn result")
+
+// ComputeScore calculates the session score (0-100, one decimal) from the raw
+// counts. len is the number of cards in the collection, taken from the database.
+//
+//	mode 0: every card has to be known in the end (right == len); every wrong answer lowers the score
+//	mode 1: every card is answered exactly once (right + wrong == len)
+func ComputeScore(mode, len, right, wrong int) (float64, error) {
+	if len <= 0 || right < 0 || wrong < 0 {
+		return 0, ErrInvalidLearnResult
+	}
+
+	var score float64
+	switch mode {
+	case 0:
+		if right != len {
+			return 0, ErrInvalidLearnResult
+		}
+		score = 100 / (1 + float64(wrong*2)/float64(len))
+	case 1:
+		if right+wrong != len {
+			return 0, ErrInvalidLearnResult
+		}
+		score = float64(right) / float64(len) * 100
+	default:
+		return 0, ErrInvalidLearnResult
+	}
+	return math.Round(score*10) / 10, nil
+}
+
+func UpdateCollectionStats(result LearnResult) (LearnResultResponse, error) {
+	cardCount, lenErr := GetCollectionLen(result.CollectionID)
+	if lenErr != nil {
+		return LearnResultResponse{}, lenErr
+	}
+
+	score, scoreErr := ComputeScore(result.Mode, cardCount, result.RightCnt, result.WrongCnt)
+	if scoreErr != nil {
+		return LearnResultResponse{}, scoreErr
+	}
+
 	db, dbErr := openDb()
 	if dbErr != nil {
 		LogError(GetFile(), dbErr)
-		return dbErr
+		return LearnResultResponse{}, dbErr
 	}
 	defer db.Close()
 
-	_, execErr := db.Exec("UPDATE CollectionProgress SET avgScore = ?, lastScore = ?, totalPlayed = totalPlayed + 1 WHERE collectionID = (?)", stats.AvgScore, stats.LastScore, stats.CollectionID)
+	response := LearnResultResponse{Score: score}
+
+	prevErr := db.QueryRow("SELECT lastScore, totalPlayed FROM CollectionProgress WHERE collectionID = ?", result.CollectionID).Scan(&response.PreviousLastScore, &response.PreviousPlayed)
+	if prevErr != nil {
+		LogError(GetFile(), prevErr)
+		return LearnResultResponse{}, prevErr
+	}
+
+	_, execErr := db.Exec(`
+		UPDATE CollectionProgress
+		SET avgScore    = ROUND((avgScore * totalPlayed + ?) / (totalPlayed + 1), 1),
+		    lastScore   = ?,
+		    totalPlayed = totalPlayed + 1
+		WHERE collectionID = ?`,
+		score, score, result.CollectionID)
 	if execErr != nil {
 		LogError(GetFile(), execErr)
-		return execErr
+		return LearnResultResponse{}, execErr
 	}
-	return nil
+	return response, nil
 }
 
 func FetchMarkedCollections(userID int) ([]MarkedCollectionElement, error) {
