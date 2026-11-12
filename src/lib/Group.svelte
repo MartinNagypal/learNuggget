@@ -5,7 +5,7 @@
     import NewCollection from "./NewCollection.svelte";
 
     const showInfo = getContext('showInfo');
-    let {name, id, create, learningPage, reloadGroups} = $props();
+    let {name, id, create, learningPage, reloadGroups, collectionsVersion = 0} = $props();
     let open = $state(0);
     let newGroupName = $state("");
 
@@ -62,7 +62,12 @@
             collections = newCollections;
         }
     }
-    getCollections();
+    // Runs once at start and again whenever the homepage counts
+    // collectionsVersion up (after a group was created or deleted)
+    $effect(() => {
+        collectionsVersion;
+        getCollections();
+    });
     const interval = setInterval(getCollections, 25000);
     onDestroy(() => clearInterval(interval));
 

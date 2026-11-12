@@ -39,6 +39,16 @@
 
     getGroups();
 
+    // Counted up after a group was created or deleted. Every Group watches it
+    // and reloads its collections, so collections moved to "Standard" when
+    // their group is deleted show up right away.
+    let collectionsVersion = $state(0);
+
+    async function reloadGroupsAndCollections(){
+        await getGroups();
+        collectionsVersion++;
+    }
+
 </script>
 
 <main class="homepage" in:fade={{duration: 200}}>
@@ -50,9 +60,9 @@
     <div class="collectionsHeader"><h4>Kollektionen </h4></div>
     <div class="collectionsContainer">
         {#each groups as group (group.id)}
-            <Group name={group.name} id={group.id} create={0} learningPage={learningpage} reloadGroups={getGroups}/>
+            <Group name={group.name} id={group.id} create={0} learningPage={learningpage} reloadGroups={reloadGroupsAndCollections} collectionsVersion={collectionsVersion}/>
         {/each}
-        <Group name="Standard" id={0} create={0} learningPage={learningpage} reloadGroups={getGroups}/>
-        <Group name="Neue Gruppe" id={0} create={1} learningPage={learningpage} reloadGroups={getGroups}/>
+        <Group name="Standard" id={0} create={0} learningPage={learningpage} reloadGroups={reloadGroupsAndCollections} collectionsVersion={collectionsVersion}/>
+        <Group name="Neue Gruppe" id={0} create={1} learningPage={learningpage} reloadGroups={reloadGroupsAndCollections}/>
     </div>
 </main>

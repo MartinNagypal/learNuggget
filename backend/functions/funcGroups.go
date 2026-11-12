@@ -38,7 +38,8 @@ func GetGroups(userID int) ([]GroupElement, error) {
 		return nil, queryErr
 	}
 	defer rows.Close()
-	var groups []GroupElement
+	// empty list instead of nil, so the JSON is [] and not null when the user has no groups
+	groups := []GroupElement{}
 	for rows.Next() {
 		var group GroupElement
 		if scanErr := rows.Scan(&group.GroupID, &group.Name); scanErr != nil {
