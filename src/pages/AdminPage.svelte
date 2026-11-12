@@ -67,7 +67,6 @@
         if(delUserId !== user.userID){
             delUserId = user.userID;
             showInfo(`Click again to delete ${user.username}`, 1);
-            // cancel the timer of a previous click (e.g. on another user)
             clearTimeout(delUserTimer);
             delUserTimer = setTimeout(() => {
                 delUserId = 0;

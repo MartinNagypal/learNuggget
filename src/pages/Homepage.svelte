@@ -40,7 +40,7 @@
     getGroups();
 
     // Counted up after a group was created or deleted. Every Group watches it
-    // and reloads its collections, so collections moved to "Standard" when
+    // and reloads its collections, so collections moved to "Default" when
     // their group is deleted show up right away.
     let collectionsVersion = $state(0);
 
@@ -53,16 +53,16 @@
 
 <main class="homepage" in:fade={{duration: 200}}>
     <div class="welcome">
-        <span>Hallo <span style="color:var(--success-color)">{name}</span></span>
-        <span class="welcomeOrange">Übe weiter</span>
-        <span> da wo du aufgehört hast!</span>
+        <span>Welcome back</span>
+        <span style="color:var(--success-color)">{name}</span>
+        <span class="welcomeOrange">continue practicing!</span>
     </div>
-    <div class="collectionsHeader"><h4>Kollektionen </h4></div>
+    <div class="collectionsHeader"><h4>Collections</h4></div>
     <div class="collectionsContainer">
         {#each groups as group (group.id)}
             <Group name={group.name} id={group.id} create={0} learningPage={learningpage} reloadGroups={reloadGroupsAndCollections} collectionsVersion={collectionsVersion}/>
         {/each}
-        <Group name="Standard" id={0} create={0} learningPage={learningpage} reloadGroups={reloadGroupsAndCollections} collectionsVersion={collectionsVersion}/>
-        <Group name="Neue Gruppe" id={0} create={1} learningPage={learningpage} reloadGroups={reloadGroupsAndCollections}/>
+        <Group name="Default" id={0} create={0} learningPage={learningpage} reloadGroups={reloadGroupsAndCollections} collectionsVersion={collectionsVersion}/>
+        <Group name="New Group" id={0} create={1} learningPage={learningpage} reloadGroups={reloadGroupsAndCollections}/>
     </div>
 </main>

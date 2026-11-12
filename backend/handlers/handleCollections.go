@@ -85,7 +85,7 @@ func NewCollection(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Collection created succesfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Collection created successfully"})
 }
 
 func RemoveColellectionHandle(c *gin.Context) {
@@ -116,7 +116,7 @@ func RemoveColellectionHandle(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Collection removed succesfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Collection removed successfully"})
 }
 
 func GetCollectionLength(c *gin.Context) {

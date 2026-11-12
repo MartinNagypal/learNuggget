@@ -29,9 +29,9 @@
 </script>
 
 <div class="collectionSettings">
-    <div class="collectionSettingsHeader">Bulk Hinzufügen</div>
-    <textarea bind:value={text} placeholder={"Format: Frage@@Antwort;;\n;; oder @@ im Text? Mit \\ davor: \\;; bzw. \\@@"}></textarea>
-    <button class="successButton" onclick={addBulkCards}>Hinzufügen</button>
+    <div class="collectionSettingsHeader">Bulk add</div>
+    <textarea bind:value={text} placeholder={"Format: Question@@Answer;;\n"}></textarea>
+    <button class="successButton" onclick={addBulkCards}>Add</button>
 </div>
 
 <style>

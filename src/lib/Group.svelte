@@ -137,7 +137,7 @@
                 <div class="createGroup">
                     <div class="createGroupHeader">Name</div>
                     <input type="text" class="mainInputStyle" placeholder="Name" bind:value={newGroupName}>
-                    <button class="standardButton" onclick={createGroup}>Hinzufügen</button>
+                    <button class="standardButton" onclick={createGroup}>Add</button>
                 </div>
             {:else}
                 <div class="groupCollections">
@@ -148,7 +148,7 @@
                     {/each}
                     <div class="newCollection" onclick={toggleNewCollection}>
                         {#if newCollection === 0}
-                            Neue Kollektion
+                            New Collection
                         {:else }
                             <div  in:fade={{duration: 200}}><NewCollection closeNewCollection={closeNewCollection} reloadCollections={getCollections} gid={id}/></div>
                         {/if}

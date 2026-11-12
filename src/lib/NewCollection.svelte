@@ -31,9 +31,9 @@
 <main id="newCollectionContent" class="newCollectionContent">
     <span class="newCollectionHeader">Name</span>
     <div class="newCollectionForm">
-        <input id="inputCollectionName" class="mainInputStyle" type="text" placeholder="Kollektion" bind:value={name}>
-        <button class="successButton" onclick={postNewCollection}>+</button>
-        <button class="dangerButton" onclick={(event) => { event.stopPropagation(); closeNewCollection();}}>x</button>
+        <input id="inputCollectionName" class="mainInputStyle" type="text" placeholder="Collection" bind:value={name}>
+        <button class="successButton newCollectionSetting" onclick={postNewCollection}>+</button>
+        <button class="dangerButton newCollectionSetting" onclick={(event) => { event.stopPropagation(); closeNewCollection();}}>x</button>
     </div>
 </main>
 
@@ -73,6 +73,12 @@
         gap: 5pt;
         justify-content: center;
         align-items: center;
+    }
+
+    .newCollectionSetting{
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
 </style>

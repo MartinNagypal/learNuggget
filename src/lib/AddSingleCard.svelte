@@ -11,7 +11,7 @@
         // same check as the backend (ValidateCard)
         if(Question.trim() === "" || Answer.trim() === ""){
             hasError = 1;
-            showInfo("Frage und Antwort dürfen nicht leer sein", 1);
+            showInfo("Question and Answer should not be empty", 1);
             return;
         }
         const data = {
@@ -30,7 +30,7 @@
 
         if(!res.ok){
             hasError = 1;
-            const errData = await res.json().catch(() => ({message: "Karte konnte nicht hinzugefügt werden"}));
+            const errData = await res.json().catch(() => ({message: "Card could not be saved"}));
             showInfo(errData.message, 1);
             return;
         }
@@ -43,11 +43,11 @@
 </script>
 
 <div class="addSingleCardContent" class:addSingleCardError={hasError}>
-    <span class="AddSingleCardCategoryName">Frage</span>
-    <input class="mainInputStyle" placeholder="Frage" type="text" bind:value={Question}>
-    <span class="AddSingleCardCategoryName">Antwort</span>
-    <input class="mainInputStyle" placeholder="Antwort" type="text" bind:value={Answer}>
-    <button class="successButton" onclick={postNewSingleCard}>Hinzufügen</button>
+    <span class="AddSingleCardCategoryName">Question</span>
+    <input class="mainInputStyle" placeholder="Question" type="text" bind:value={Question}>
+    <span class="AddSingleCardCategoryName">Answer</span>
+    <input class="mainInputStyle" placeholder="Answer" type="text" bind:value={Answer}>
+    <button class="successButton" onclick={postNewSingleCard}>Add</button>
 </div>
 
 <style>

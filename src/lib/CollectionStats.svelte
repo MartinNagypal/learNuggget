@@ -38,7 +38,7 @@
     </div>
     <div class="collectionStatElement">
         <div class="statHeader">{avgScore}%</div>
-        <div class="statFooter">Average </div>
+        <div class="statFooter">Average</div>
     </div>
     <div class="collectionStatElement">
         <div class="statHeader">{lastScore}%</div>

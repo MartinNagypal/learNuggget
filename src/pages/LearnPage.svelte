@@ -24,18 +24,18 @@
     getMarkedCollections();
 
     function learnAll(mode){
-        learningPage("Markierte Karten", ALL_MARKED, mode, true);
+        learningPage("Marked Cards", ALL_MARKED, mode, true);
     }
 </script>
 
 <main class="learnPage" in:fade={{duration: 200}}>
     <section class="learnSection">
-        <div class="sectionHeader"><i class="fa-solid fa-star"></i> Markierte Karten</div>
+        <div class="sectionHeader"><i class="fa-solid fa-star"></i> Marked Cards</div>
         {#if loaded && total > 0}
             <div class="allMarkedBar">
                 <div>
                     <div class="allMarkedTotal">{total}</div>
-                    <div class="allMarkedSource">aus {collections.length} {collections.length === 1 ? "Kollektion" : "Kollektionen"}</div>
+                    <div class="allMarkedSource">of {collections.length} {collections.length === 1 ? "Collection" : "Collections"}</div>
                 </div>
                 <div class="allMarkedButtons">
                     <button class="accentButton" onclick={() => learnAll(2)}><i class="fa-solid fa-infinity"></i></button>
@@ -49,11 +49,11 @@
     {#if loaded}
         {#if total === 0}
             <div class="emptyMarked">
-                <span>Noch keine Karten markiert.</span>
-                <span class="emptyMarkedHint">Beim Lernen mit <i class="fa-regular fa-star"></i> markieren, dann tauchen sie hier auf.</span>
+                <span>No marked Cards yet.</span>
+                <span class="emptyMarkedHint">Mark Cards with <i class="fa-regular fa-star"></i> while learning, then you can find them here.</span>
             </div>
         {:else}
-            <div class="learnPageHeader">Nach Kollektion</div>
+            <div class="learnPageHeader">By Collection</div>
             <div class="markedCollections">
                 {#each collections as collection (collection.id)}
                     <Collection name={collection.name} id={collection.id} learningpage={learningPage} reloadCollections={getMarkedCollections} markedMode={true}/>

@@ -48,7 +48,7 @@ func AddNewCard(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Card added succesfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Card added successfully"})
 }
 
 func GetCards(c *gin.Context) {
@@ -140,7 +140,7 @@ func AddBulkCards(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("%d cards added succesfully", len(cards))})
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("%d cards added successfully", len(cards))})
 }
 
 func DeleteCard(c *gin.Context) {
@@ -170,7 +170,7 @@ func DeleteCard(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal server error"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Deleted Succesfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Deleted Successfully"})
 }
 
 func MarkCard(c *gin.Context) {

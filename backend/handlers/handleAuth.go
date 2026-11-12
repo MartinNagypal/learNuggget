@@ -63,7 +63,7 @@ func RegisterUser(c *gin.Context) {
 	// SameSite=Strict: the browser never sends the cookie with requests started by another site
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("sessionToken", sessionToken, functions.SessionLifetimeSeconds, "/", "", isProduction, true)
-	c.JSON(http.StatusOK, gin.H{"message": "user succesfully registered"})
+	c.JSON(http.StatusOK, gin.H{"message": "user successfully registered"})
 }
 
 func LoginUser(c *gin.Context) {
@@ -87,7 +87,7 @@ func LoginUser(c *gin.Context) {
 	}
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("sessionToken", sessionToken, functions.SessionLifetimeSeconds, "/", "", isProduction, true)
-	c.JSON(http.StatusOK, gin.H{"message": "Succesfully logged in"})
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged in"})
 }
 
 func VerifySessionValid(c *gin.Context) {
@@ -124,7 +124,7 @@ func Logout(c *gin.Context) {
 	// Max-Age -1: the browser deletes the cookie
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("sessionToken", "", -1, "/", "", isProduction, true)
-	c.JSON(http.StatusOK, gin.H{"message": "Succesfully logged out"})
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
 }
 
 func FetchUsername(c *gin.Context) {
@@ -180,7 +180,7 @@ func DelAccount(c *gin.Context) {
 	}
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("sessionToken", "", -1, "/", "", isProduction, true)
-	c.JSON(http.StatusOK, gin.H{"message": "Succesfully deleted account"})
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully deleted account"})
 }
 
 func LogoutAllSession(c *gin.Context) {
@@ -202,5 +202,5 @@ func LogoutAllSession(c *gin.Context) {
 	}
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("sessionToken", "", -1, "/", "", isProduction, true)
-	c.JSON(http.StatusOK, gin.H{"message": "Succesfully logged out from all sessions"})
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out from all sessions"})
 }

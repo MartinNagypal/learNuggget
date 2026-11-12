@@ -27,7 +27,7 @@
             <span>{user.avgScore.toFixed(1)}%</span>
         </div>
     {:else}
-        <div class="rankListElement">Noch keine Einträge</div>
+        <div class="rankListElement">No entries yet</div>
     {/each}
 </div>
 <style>

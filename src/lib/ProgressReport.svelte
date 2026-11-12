@@ -50,7 +50,7 @@
 </script>
 
 <div class="progressReport" transition:fade={{duration: 250}}>
-    <span class="progressReportHeader">Geschafft!</span>
+    <span class="progressReportHeader">Done!</span>
     <span>Score</span>
     <span class="progressReportScore">{score}%</span>
     {#if progess > 0}
@@ -59,18 +59,18 @@
         <span style="color: var(--failure-color); font-size: var(--font-size-small)"><i class="fa-solid fa-angles-down"></i> {progess.toFixed(1)}%</span>
     {/if}
     {#if mode === 0}
-        <span>Anzahl Falsch</span>
+        <span>Wrong Cards</span>
         <span class="progressReportFalse">{wrongCnt}</span>
     {/if}
-    <span>Richtig</span>
+    <span>Right Cards</span>
     <span class="progressReportTrue">{rightCnt}/{len}</span>
 
     <div class="progressReportActions">
-        <button class="successButton" onclick={learnAgain}>Nochmal lernen</button>
+        <button class="successButton" onclick={learnAgain}>Learn Again</button>
         {#if !markedOnly}
-            <button class="accentButton" onclick={learnMarked}>Markierte Karten lernen</button>
+            <button class="accentButton" onclick={learnMarked}>Learn Marked Cards</button>
         {/if}
-        <button class="standardButton" onclick={leaveLearningPage}> Zum Hauptmenü</button>
+        <button class="standardButton" onclick={leaveLearningPage}>Home</button>
     </div>
 </div>
 

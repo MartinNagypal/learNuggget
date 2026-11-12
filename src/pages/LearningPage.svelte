@@ -82,7 +82,7 @@
             currentCard = cards.findIndex(card => card.cardId === currentId);
         }
 
-        showInfo(shuffled ? "Zufällige Reihenfolge" : "Reihenfolge wie in der Kollektion", 0);
+        showInfo(shuffled ? "Random order" : "Original order", 0);
     }
 
     function nextCard() {
@@ -207,7 +207,7 @@
             }
         }
         else{
-            showInfo("Delete Cards in only available in Endless mode.", 1);
+            showInfo("Deleting cards is only available in Infinity mode", 1);
         }
     }
 
@@ -224,7 +224,7 @@
         });
         if (!res.ok) {
             card.marked = !card.marked;
-            showInfo("Markieren fehlgeschlagen", 1);
+            showInfo("Failed to mark card", 1);
         }
     }
 
@@ -245,9 +245,9 @@
                 {:else if finished === 1}
                     <ProgressReport mode={gameMode} len={len} wrongCnt={wrong} rightCnt={known} name={name} id={id} markedOnly={markedOnly}/>
                 {:else if markedOnly}
-                    <span>Hier sind keine Karten markiert.</span>
+                    <span>No marked cards here.</span>
                 {:else}
-                    <span>Diese Kollektion enthält noch keine Karten.</span>
+                    <span>This collection has no cards yet.</span>
                 {/if}
             </div>
 
@@ -263,7 +263,7 @@
                     {:else}
                         <button class="inactiveButton"><i class="fa-solid fa-angle-left fa-xl"></i></button>
                     {/if}
-                        <button class="standardButton" onclick={toggleOrder} title={shuffled ? "Zufällige Reihenfolge" : "Der Reihe nach"}><i class={shuffled ? "fa-solid fa-shuffle fa-xl" : "fa-solid fa-arrow-down-1-9 fa-xl"}></i></button>
+                        <button class="standardButton" onclick={toggleOrder} title={shuffled ? "Random order" : "In order"}><i class={shuffled ? "fa-solid fa-shuffle fa-xl" : "fa-solid fa-arrow-down-1-9 fa-xl"}></i></button>
                     {#if gameMode === 2}
                         <button class="standardButton" onclick={nextCard}><i class="fa-solid fa-angle-right fa-xl"></i></button>
                     {:else}

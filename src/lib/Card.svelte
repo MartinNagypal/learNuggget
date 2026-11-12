@@ -15,7 +15,7 @@
             <div onclick={changeSite} class="cardContent" in:scale={{ duration: 320, start: 0.75, opacity: 0 }} out:scale={{ duration: 180, start: 1.15, opacity: 0 }}><RichText text={text}/></div>
             <div onclick={changeSite} class="answer hidden"><RichText text={answer}/></div>
             <div onclick={changeSite} class="cardBottom" in:scale={{ duration: 320, start: 0.75, opacity: 0 }} out:scale={{ duration: 180, start: 1.15, opacity: 0 }}>
-                Tippe zum Umdrehen
+                Tap to flip
             </div>
         </div>
     {:else}
@@ -26,12 +26,11 @@
             <div style="width: 100%;" in:scale={{ duration: 320, start: 0.75, opacity: 0 }} out:scale={{ duration: 180, start: 1.15, opacity: 0 }}>
                 {#if mode !== 2}
                     <div class="cardActions">
-                        <button class="failedButton button" onclick={toggleWrong}>Falsch</button>
-                        <button class="successButton button" onclick={toggleKnownCard}>Richtig</button>
+                        <button class="failedButton button" onclick={toggleWrong}>Wrong</button>
+                        <button class="successButton button" onclick={toggleKnownCard}>Right</button>
                     </div>
                 {/if}
             </div>
-
         </div>
     {/if}
 

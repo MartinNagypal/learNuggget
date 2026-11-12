@@ -72,7 +72,7 @@
         });
         if(res.ok){
             registration = 0;
-            showInfo("Succesfully registered", 0);
+            showInfo("Successfully registered", 0);
             username = "";
             password = "";
             await verifySession();
@@ -127,44 +127,44 @@
 <div class="login">
     <div class="loginContent">
         <div class="welcomeText">
-            <span>Wilkommen</span>
-            <span>bei</span>
+            <span>Welcome</span>
+            <span>to</span>
             <img src="/logo.png" width="200px">
         </div>
-        <span class="loginHeader">Benutzername</span>
-        <input type="text" placeholder="Benutzername" class="mainInputStyle" bind:value={username}>
+        <span class="loginHeader">Username</span>
+        <input type="text" placeholder="Username" class="mainInputStyle" bind:value={username}>
         <div class="passReq">
             {#if usernameValid === -1}
-                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>5 - 32 Zeichen: Buchstaben, Zahlen, _ . -</span>
+                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>5 - 32 Character: Letters, Numbers, _ . -</span>
             {/if}
         </div>
-        <span class="loginHeader">Passwort</span>
-        <input type="password" placeholder="Passwort" class="mainInputStyle"  bind:value={password}>
+        <span class="loginHeader">Password</span>
+        <input type="password" placeholder="Password" class="mainInputStyle"  bind:value={password}>
         <div class="passReq">
             {#if passwordMinlen === -1}
-                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>Länge zwischen 8 - 32 Charakter</span>
+                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>Length between 8 - 32 Character</span>
             {/if}
             {#if passwordNumber === -1}
-                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>Mindestens eine Nummer</span>
+                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>At least one Number</span>
             {/if}
             {#if passwordUpper === -1}
-                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>Mindestens eine Großbuchstabe</span>
+                <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>At least one uppercase and one lowercase letter</span>
             {/if}
         </div>
         {#if registration === 1}
             <div class="register" in:fly={{ y: -20, duration: 500, opacity: 0 }} >
-                <span class="loginHeader">Passwort Wiederholen</span>
-                <input type="password" placeholder="Passwort" class="mainInputStyle" bind:value={passwordAgain}>
+                <span class="loginHeader">Repeat password</span>
+                <input type="password" placeholder="Password" class="mainInputStyle" bind:value={passwordAgain}>
                 <div class="passReq">
                     {#if passwordMatch === -1}
-                        <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>Passwörter sind nicht gleich</span>
+                        <span in:fly={{ y: -10, duration: 250, opacity: 0 }}>Passwords do not match</span>
                     {/if}
                 </div>
             </div>
         {/if}
         <div class="loginAction">
-            <button class="standardButton" onclick={login}>Anmelden</button>
-            <button class="accentButton" onclick={register}>Registrieren</button>
+            <button class="standardButton" onclick={login}>Login</button>
+            <button class="accentButton" onclick={register}>Register</button>
         </div>
     </div>
 </div>
